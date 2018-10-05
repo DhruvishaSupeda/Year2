@@ -10,10 +10,11 @@ module Bags where
   bcreate=[]
 
   --listToBag::Googlenit? Idk
+--  listToBag
 
   --bagEqual::Maybe use Eq?? Maybe ==??
 
-  bagInsert::String->String->Bag->Bag
+  bagInsert::String->Int->Bag->Bag
   bagInsert p number bag = ((p, number):bdelete p bag)
 
   --bagSum:: DEFFO lol who knows
@@ -25,11 +26,11 @@ module Bags where
     |null bag = []
     |p==q = rbag
     |otherwise = ((q,number):bdelete p rbag)
-  where ((q,number):rbag)=bag
+    where ((q,number):rbag)=bag
 
   bget::String->Bag->String
   bget q bag
-    |null pl=error"item not present"
-    |p==q = rpl
+    |null bag=error"item not present"
+    |p==q = q
     |otherwise = bget q rbag
-   where ((p,number):rbag)
+    where ((p,number):rbag) = bag
