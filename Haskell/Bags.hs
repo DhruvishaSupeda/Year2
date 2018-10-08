@@ -13,53 +13,55 @@ module Bags where
   connasse=[("hello", 7),("merde",1)]
 
   salaud::Bag
-  salaud=[("hello", 7),("merde",1)]
+  salaud=[("hello", 5),("merde",1),("goodbye",2)]
 
   listToBag::[String]->Bag
   listToBag shitface = listToBagA shitface bcreate
 
   listToBagA::[String]->Bag->Bag
   listToBagA shitballs bag
-    |null shitballs = bag
-    |otherwise = listToBagA t (bagInsert h bag)
+    |null shitballs = bag --if the string list is empty
+    |otherwise = listToBagA t (bagInsert h bag) --inserts the iteminto the bag then recurses
     where (h:t) = shitballs
-
-  --go through whole list,continuously using bag insert until you're
-  --driven to jump off the arts tower
 
   bagEqual::Bag->Bag->Bool
   bagEqual scrot1 gooch2
-    |null scrot1 && null gooch2 = True
-    |null scrot1 || null gooch2 = False
-    |existsbitch (fst h1) gooch2 && snd h1 == bget (fst h1) gooch2 = bagEqual (bdelete (fst h1) scrot1) (bdelete (fst h1) gooch2)
+    |null scrot1 && null gooch2 = True --if both bags empty,technically equal
+    |null scrot1 || null gooch2 = False --if only one is empty, false
+    |existsbitch (fst h1) gooch2 && snd h1 == bget (fst h1) gooch2 =
+      bagEqual (bdelete (fst h1) scrot1) (bdelete (fst h1) gooch2)
+      --if it exists in the second bag, then recurse with deleted from both bags
     |otherwise = False
     where (h1:t1) = scrot1
           (h2:t2) = gooch2
 
-    --go through list 1
-    --for each item,check ifitexists in thesecond
-    --if it does, check number of occurrences is the same
-    --if it is, go tonext item otherwise give false
-
   bPut::String->Int->Bag->Bag
   bPut p number bag = ((p, number):bdelete p bag)
 
-  --find it using bget
-  --if it exists, add one to the number
-  --if not, make a new tuple
   bagInsert::String->Bag->Bag
   bagInsert p bag
-     |existsbitch p bag = bPut p (bitchesbeincrementing p bag) bag
-     |otherwise = bPut p 1 bag
+    |existsbitch p bag = bPut p (bitchesbeincrementing p bag) bag
+    |otherwise = bPut p 1 bag
 
   bagSum::Bag->Bag->Bag
   bagSum campbellisadipshit asscake
-    |
+    |null campbellisadipshit && null asscake = bcreate
+    |null campbellisadipshit = asscake
+    |existsbitch (fst h1) asscake =
+      bagSum (bdelete (fst h1) campbellisadipshit) (bPut (fst h1) (snd h1+(bget (fst h1) asscake)) asscake)
+    |otherwise =
+      bagSum (bdelete (fst h1) campbellisadipshit) (bPut (fst h1) (snd h1) asscake)
+    where (h1:t1) = campbellisadipshit
+          (h2:t2) = asscake
+
 
     --go through each item in first list
-    --
+    --if it exists, insert items in second and first into new bag andrecurse
+    --if it doesn't, add and recurse
 
-  --bagIntersection:: he skipped it in the lecture sooo
+  bagIntersection::Bag->Bag->Bag
+  bagIntersection bag1 bag2
+  
 
   bdelete::String->Bag->Bag
   bdelete p bag
