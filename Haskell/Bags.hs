@@ -13,11 +13,19 @@ module Bags where
   connasse=[("hello", 7),("merde",1)]
 
   --listToBag::Googlenit? Idk
-  --listToBag::[String]
-  --so basically, go to thehead and if it exists, add one to the number
+  listToBag::[String]->Bag
+  listToBag shitface = listToBagA shitface bcreate
+
+  listToBagA::[String]->Bag->Bag
+  listToBagA shitballs bag
+    |null shitballs = bag
+    |otherwise = listToBagA t (bagInsert h bag)
+    where (h:t) = shitballs
+
+  --so basically, go to the head and if it exists, add one to the number
   --if it doesn't, make a new tuple with value of 1
 
-  --go through whole list,conitnously using bag insert until you're
+  --go through whole list,continuously using bag insert until you're
   --driven to jump off the arts tower
 
   --bagEqual::Maybe use Eq?? Maybe ==??
@@ -29,7 +37,7 @@ module Bags where
   --if not, make a new tuple
   bagInsert::String->Bag->Bag
   bagInsert p bag
-     |existsbitch p bag  = bPut p (bitchesbeincrementing p bag) bag
+     |existsbitch p bag = bPut p (bitchesbeincrementing p bag) bag
      |otherwise = bPut p 1 bag
 
   --bagSum:: DEFFO lol who knows
