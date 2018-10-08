@@ -12,7 +12,9 @@ module Bags where
   connasse::Bag
   connasse=[("hello", 7),("merde",1)]
 
-  --listToBag::Googlenit? Idk
+  salaud::Bag
+  salaud=[("hello", 7),("merde",1)]
+
   listToBag::[String]->Bag
   listToBag shitface = listToBagA shitface bcreate
 
@@ -22,16 +24,26 @@ module Bags where
     |otherwise = listToBagA t (bagInsert h bag)
     where (h:t) = shitballs
 
-  --so basically, go to the head and if it exists, add one to the number
-  --if it doesn't, make a new tuple with value of 1
-
   --go through whole list,continuously using bag insert until you're
   --driven to jump off the arts tower
 
-  --bagEqual::Maybe use Eq?? Maybe ==??
+  bagEqual::Bag->Bag->Bool
+  bagEqual scrot1 gooch2
+    |null scrot1 && null gooch2 = True
+    |null scrot1 || null gooch2 = False
+    |existsbitch (fst h1) gooch2 && snd h1 == bget (fst h1) gooch2 = bagEqual (bdelete (fst h1) scrot1) (bdelete (fst h1) gooch2)
+    |otherwise = False
+    where (h1:t1) = scrot1
+          (h2:t2) = gooch2
+
+    --go through list 1
+    --for each item,check ifitexists in thesecond
+    --if it does, check number of occurrences is the same
+    --if it is, go tonext item otherwise give false
 
   bPut::String->Int->Bag->Bag
   bPut p number bag = ((p, number):bdelete p bag)
+
   --find it using bget
   --if it exists, add one to the number
   --if not, make a new tuple
@@ -40,7 +52,12 @@ module Bags where
      |existsbitch p bag = bPut p (bitchesbeincrementing p bag) bag
      |otherwise = bPut p 1 bag
 
-  --bagSum:: DEFFO lol who knows
+  bagSum::Bag->Bag->Bag
+  bagSum campbellisadipshit asscake
+    |
+
+    --go through each item in first list
+    --
 
   --bagIntersection:: he skipped it in the lecture sooo
 
