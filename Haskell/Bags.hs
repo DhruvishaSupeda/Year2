@@ -10,10 +10,13 @@ module Bags where
   bcreate=[]
 
   connasse::Bag
-  connasse=[("hello", 7),("merde",1)]
+  connasse=[("hello", 7),("merde",2)]
 
   salaud::Bag
-  salaud=[("hello", 5),("merde",1),("goodbye",2)]
+  salaud=[("hello", 7),("merde",1),("goodbye",2)]
+
+  wtaf::Bag
+  wtaf=[("WHY",4)]
 
   listToBag::[String]->Bag
   listToBag shitface = listToBagA shitface bcreate
@@ -28,7 +31,7 @@ module Bags where
   bagEqual scrot1 gooch2
     |null scrot1 && null gooch2 = True --if both bags empty,technically equal
     |null scrot1 || null gooch2 = False --if only one is empty, false
-    |existsbitch (fst h1) gooch2 && snd h1 == bget (fst h1) gooch2 =
+    |itemExists (fst h1) gooch2 && snd h1 == bget (fst h1) gooch2 =
       bagEqual (bdelete (fst h1) scrot1) (bdelete (fst h1) gooch2)
       --if it exists in the second bag, then recurse with deleted from both bags
     |otherwise = False
@@ -40,28 +43,47 @@ module Bags where
 
   bagInsert::String->Bag->Bag
   bagInsert p bag
-    |existsbitch p bag = bPut p (bitchesbeincrementing p bag) bag
+    |itemExists p bag = bPut p (numberIncrement p bag) bag
     |otherwise = bPut p 1 bag
 
   bagSum::Bag->Bag->Bag
-  bagSum campbellisadipshit asscake
-    |null campbellisadipshit && null asscake = bcreate
-    |null campbellisadipshit = asscake
-    |existsbitch (fst h1) asscake =
-      bagSum (bdelete (fst h1) campbellisadipshit) (bPut (fst h1) (snd h1+(bget (fst h1) asscake)) asscake)
+  bagSum bag1 bag2
+    |null bag1 && null bag2 = bcreate
+    |null bag1 = bag2
+    |itemExists (fst h1) bag2 =
+      bagSum (bdelete (fst h1) bag1) (bPut (fst h1) (snd h1+(bget (fst h1) bag2)) bag2)
     |otherwise =
-      bagSum (bdelete (fst h1) campbellisadipshit) (bPut (fst h1) (snd h1) asscake)
-    where (h1:t1) = campbellisadipshit
-          (h2:t2) = asscake
+      bagSum (bdelete (fst h1) bag1) (bPut (fst h1) (snd h1) bag2)
+    where (h1:t1) = bag1
+          (h2:t2) = bag2
 
 
     --go through each item in first list
     --if it exists, insert items in second and first into new bag andrecurse
     --if it doesn't, add and recurse
 
-  bagIntersection::Bag->Bag->Bag
+  {--bagIntersection::Bag->Bag->Bag
   bagIntersection bag1 bag2
-  
+    |null t1 = bag1
+    |null bag1 || null bag2 = bcreate --if one or more is empty, no intersection
+    |itemExists (fst h1) bag2 && (snd h1)<(bget (fst h1) bag2) =
+      bagIntersection t1 bag2
+    |itemExists (fst h1) bag2 && ((bget (fst h1) bag2)<(snd h1)) =
+      bagIntersection (bPut (fst h1) (bget (fst h1) bag2) bag1) bag2
+  --  |otherwise = bagIntersection (bdelete (fst h1) bag1) bag2
+    |otherwise = wtaf
+    where (h1:t1) = bag1
+          (h2:t2) = bag2
+--if it exitst and no1<no2, keep and recurse, using t1
+--if it exists and no2<no1,replace with no2 and recurse, using t1
+--if it doesn't exist, delete and recurse--}
+
+  bagIntersection::Bag->Bag->Bag
+  bagIntersection (h1:t1) bag2
+    |null (h1:t1) || null bag2 = bcreate
+    |null t1 = wtaf
+    |itemExists (fst h1) bag2 = (h1:bagIntersection t1 bag2)
+    |otherwise = bagIntersection (bdelete (fst h1) (h1:t1)) bag2
 
   bdelete::String->Bag->Bag
   bdelete p bag
@@ -77,12 +99,12 @@ module Bags where
     |otherwise = bget q rbag
     where ((p,number):rbag) = bag
 
-  existsbitch::String->Bag->Bool
-  existsbitch stringgggggggg bag
+  itemExists::String->Bag->Bool
+  itemExists item bag
     |null bag=False
-    |p==stringgggggggg = True
-    |otherwise = existsbitch stringgggggggg rbag
+    |p==item = True
+    |otherwise = itemExists item rbag
     where ((p,number):rbag) = bag
 
-  bitchesbeincrementing::String->Bag->Int
-  bitchesbeincrementing fuckoff bag = (bget fuckoff bag) + 1
+  numberIncrement::String->Bag->Int
+  numberIncrement fuckoff bag = (bget fuckoff bag) + 1
