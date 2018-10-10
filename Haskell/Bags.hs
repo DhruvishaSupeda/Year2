@@ -24,37 +24,37 @@ module Bags where
   listToBagA::Eq a => [a] -> Bag a -> Bag a
   listToBagA list1 bag
     |null list1 = bag --if the string list is empty
-    |otherwise = listToBagA t (bagInsert h bag) --inserts the iteminto the bag then recurses
+    |otherwise = listToBagA t (bagInsert h bag) --inserts the item into the bag then recurses
     where (h:t) = list1
 
   bagEqual::Eq a => Bag a -> Bag a -> Bool
   bagEqual bag1 bag2
     |null bag1 && null bag2 = True --if both bags empty,technically equal
     |null bag1 || null bag2 = False --if only one is empty, false
-    |(itemExists (fst h1) bag2) && (snd h1 == bget (fst h1) bag2) =
-      bagEqual (bdelete (fst h1) bag1) (bdelete (fst h1) bag2)
+    |(itemExists item bag2) && (number == getNumberOfItem item bag2) =
+      bagEqual (itemDelete item bag1) (itemDelete item bag2)
       --if it exists in the second bag, then recurse with deleted from both bags
     |otherwise = False
-    where (h1:t1) = bag1
+    where ((item,number):rbag) = bag1
 
-  bPut::Eq a => a -> Int -> Bag a -> Bag a
-  bPut item number bag = ((item, number):bdelete item bag)
+  itemPut::Eq a => a -> Int -> Bag a -> Bag a
+  itemPut item number bag = ((item, number):itemDelete item bag)
 
   bagInsert::Eq a => a -> Bag a -> Bag a
   bagInsert item bag
-    |itemExists item bag = bPut item (numberIncrement item bag) bag
-    |otherwise = bPut item 1 bag
+    |itemExists item bag = itemPut item (numberIncrement item bag) bag
+    |otherwise = itemPut item 1 bag
 
   bagSum::Eq a => Bag a -> Bag a -> Bag a
   bagSum bag1 bag2
     |null bag1 && null bag2 = bcreate
     |null bag2 = bag1
     |null bag1 = bag2
-    |itemExists (fst h1) bag2 =
-      bagSum (bdelete (fst h1) bag1) (bPut (fst h1) (snd h1+(bget (fst h1) bag2)) bag2)
+    |itemExists item bag2 =
+      bagSum (itemDelete item bag1) (itemPut item (number+(getNumberOfItem item bag2)) bag2)
     |otherwise =
-      bagSum (bdelete (fst h1) bag1) (bPut (fst h1) (snd h1) bag2)
-    where (h1:t1) = bag1
+      bagSum (itemDelete item bag1) (itemPut item number bag2)
+    where ((item,number):rbag) = bag1
 
     --go through each item in first list
     --if it exists, insert items in second and first into new bag andrecurse
@@ -67,38 +67,38 @@ module Bags where
   bagIntersectionA bag1 bag2 bagnew
     |null bag1 = bagnew
     |null bag1 || null bag2 = bcreate
-    |itemExists (fst h1) bag2 =
-      bagIntersectionA (bdelete (fst h1) bag1){----} bag2 {----}(bPut (fst h1) (smallestValue (snd h1) (bget (fst h1) bag2))bagnew)
-    |otherwise = bagIntersectionA (bdelete (fst h1) bag1) bag2 bagnew
-    where (h1:t1) = bag1
+    |itemExists item bag2 =
+      bagIntersectionA (itemDelete item bag1){----} bag2 {----}(itemPut item (smallestValue number (getNumberOfItem item bag2)) bagnew)
+    |otherwise = bagIntersectionA (itemDelete item bag1) bag2 bagnew
+    where ((item,number):rbag) = bag1
 
   --if it exitst and no1<no2, keep and recurse, using t1
   --if it exists and no2<no1,replace with no2 and recurse, using t1
   --if it doesn't exist, delete and recurse--}
 
-  bdelete::Eq a => a -> Bag a -> Bag a
-  bdelete item bag
-    |null bag = []
-    |item==q = rbag
-    |otherwise = ((q,number):bdelete item rbag)
-    where ((q,number):rbag)=bag
+  itemDelete::Eq a => a -> Bag a -> Bag a
+  itemDelete item bag
+    |null bag = bcreate
+    |item==headItem = rbag
+    |otherwise = ((headItem,number):itemDelete item rbag)
+    where ((headItem,number):rbag)=bag
 
-  bget::Eq a => a -> Bag a -> Int
-  bget q bag
+  getNumberOfItem::Eq a => a -> Bag a -> Int
+  getNumberOfItem item bag
     |null bag=error"item not present"
-    |p==q = number
-    |otherwise = bget q rbag
-    where ((p,number):rbag) = bag
+    |headItem==item = number
+    |otherwise = getNumberOfItem item rbag
+    where ((headItem,number):rbag) = bag
 
   itemExists::Eq a => a-> Bag a -> Bool
   itemExists item bag
     |null bag=False
-    |p==item = True
+    |headItem==item = True
     |otherwise = itemExists item rbag
-    where ((p,number):rbag) = bag
+    where ((headItem,number):rbag) = bag
 
   numberIncrement::Eq a => a -> Bag a -> Int
-  numberIncrement fuckoff bag = (bget fuckoff bag) + 1
+  numberIncrement item bag = (getNumberOfItem item bag) + 1
 
   smallestValue::Int -> Int -> Int
   smallestValue int1 int2
