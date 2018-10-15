@@ -96,17 +96,19 @@ module Bags where
   bagIntersection::Eq a=> Bag a -> Bag a -> Bag a
   bagIntersection [] _ = []
   bagIntersection _ [] = []
-  bagIntersection (h1:t1) bag2
-    |itemExists (fst h1) bag2 = (h1:bagIntersection t1 bag2)
+  bagIntersection bag1 bag2
+  --  |itemExists (fst h1) bag2 = (h1:bagIntersection t1 bag2)
+  --  |otherwise = bagIntersection t1 bag2
+    |itemExists (fst h1) bag2 && (snd h1) < getNumberOfItem (fst h1) bag2 =
+      (h1:bagIntersection t1 bag2)
+    |itemExists (fst h1) bag2 && (snd h1) > getNumberOfItem (fst h1) bag2 =
+      (itemPut (fst h1) (getNumberOfItem (fst h1) bag2) bag1) ++ (bagIntersection t1 bag2)
     |otherwise = bagIntersection t1 bag2
-  --  |itemExists (fst h1) bag2 && (snd h1) < getNumberOfItem (fst h1) bag2 =
-  --    bagIntersection (h1:bagIntersection t1 bag2)
-  --  |itemExists (fst h1) bag2 && (snd h1) > getNumberOfItem (fst h1) bag2 =
-  --    bagIntersection ((itemPut (fst h1) getNumberOfItem (fst h1) bag2):bagIntersection t1 bag2)
+    where (h1:t1) = bag1
 
   --if it exitst and no1<no2, keep and recurse, using t1
   --if it exists and no2<no1,replace with no2 and recurse, using t1
-  --if it doesn't exist, delete and recurse--}
+  --if it doesn't exist, delete and recurse
 
   --function used to delete an item
   itemDelete::Eq a => a -> Bag a -> Bag a
