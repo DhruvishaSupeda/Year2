@@ -18,6 +18,24 @@ module Bags where
   wtaf::Bag String
   wtaf=[("WHY",4)]
 
+  testBag1::Bag String
+  testBag1 = [("test",3),("original",1),("generic string",15)]
+
+  testBag2::Bag Int
+  testBag2 = [(7,3),(34,9),(7,1)]
+
+  testBag3::Bag String
+  testBag3 = [("test",3),("original",1),("generic string",15)]
+
+  testBag4::Bag String
+  testBag4 = [("original",1),("test",3),("generic string",15)]
+
+  testBag5::Bag String
+  testBag5 = [("hello",7),("test",4),("generic string",15)]
+
+  emptyBag::Bag String
+  emptyBag = []
+
   listToBag::Eq a => [a] -> Bag a
   listToBag list1 = listToBagA list1 bcreate
 
