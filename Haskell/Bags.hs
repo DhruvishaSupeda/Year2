@@ -9,6 +9,12 @@ module Bags where
   bcreate::Bag a
   bcreate=[]
 
+  connasse::Bag String
+  connasse=[("hello", 7),("merde",4),("goodbyeeeeeeeeeeee",8)]
+
+  salaud::Bag String
+  salaud=[("hellooooooooooo", 7),("merde",1),("goodbye",2)]
+
  --Bags used for testing
   testBag1::Bag String
   testBag1 = [("test",3),("original",1),("generic string",15)]
@@ -99,12 +105,14 @@ module Bags where
   bagIntersection bag1 bag2
   --  |itemExists (fst h1) bag2 = (h1:bagIntersection t1 bag2)
   --  |otherwise = bagIntersection t1 bag2
-    |itemExists (fst h1) bag2 && (snd h1) < getNumberOfItem (fst h1) bag2 =
+  {--  |itemExists item bag2 && number < getNumberOfItem item bag2 =
       (h1:bagIntersection t1 bag2)
-    |itemExists (fst h1) bag2 && (snd h1) > getNumberOfItem (fst h1) bag2 =
-      (itemPut (fst h1) (getNumberOfItem (fst h1) bag2) bag1) ++ (bagIntersection t1 bag2)
+    |itemExists item bag2 && number > getNumberOfItem item bag2 =
+      (itemPut item (getNumberOfItem item bag2) bag1) ++ (bagIntersection t1 bag2) --}
+    |itemExists item bag2 =
+      (itemPut item (smallestValue number (getNumberOfItem item bag2)) bag1) ++ (bagIntersection (itemDelete item bag1) bag2)
     |otherwise = bagIntersection t1 bag2
-    where (h1:t1) = bag1
+    where ((item,number):t1) = bag1
 
   --if it exitst and no1<no2, keep and recurse, using t1
   --if it exists and no2<no1,replace with no2 and recurse, using t1
