@@ -1,6 +1,5 @@
 {-**********************
 Bags.hs
-Assignment hell hi Phil
 **********************-}
 module Bags where
   type Bag a = [(a, Int)]
@@ -9,18 +8,9 @@ module Bags where
   bcreate::Bag a
   bcreate=[]
 
-  connasse::Bag String
-  connasse=[("hello", 7),("merde",4),("goodbyeeeeeeeeeeee",8)]
-
-  salaud::Bag String
-  salaud=[("hellooooooooooo", 7),("merde",1),("goodbye",2)]
-
  --Bags used for testing
   testBag1::Bag String
   testBag1 = [("test",3),("original",1),("generic string",15)]
-
-  testBag2::Bag Int
-  testBag2 = [(7,3),(34,9),(7,1)]
 
   testBag3::Bag String
   testBag3 = [("test",3),("original",1),("generic string",15)]
@@ -30,9 +20,6 @@ module Bags where
 
   testBag5::Bag String
   testBag5 = [("hello",7),("test",4),("generic string",15)]
-
-  emptyBag::Bag String
-  emptyBag = []
 
   --Calls the auxiliary function listToBagA with an empty bag
   listToBag::Eq a => [a] -> Bag a
@@ -59,15 +46,16 @@ module Bags where
     where ((item,number):rbag) = bag1
           ((item2,number2):t2) = bag2
 
-  --inserts an item into a bag, given the item and number of occurences
+  --inserts an item into a bag, given the item and number of occurrences
   itemPut::Eq a => a -> Int -> Bag a -> Bag a
   itemPut item number bag = ((item, number):itemDelete item bag)
 
+  --insert one occurrence of an item into a bag, given the item and bag
   bagInsert::Eq a => a -> Bag a -> Bag a
   bagInsert item bag
-   --if the item already exists, add one to the number of occurences
+   --if the item already exists, add one to the number of occurrences
     |itemExists item bag = itemPut item (numberIncrement item bag) bag
-   --if the item doesn't exist, make a new tuple with an occurence of 1
+   --if the item doesn't exist, make a new tuple with an occurrence of 1
     |otherwise = itemPut item 1 bag
 
   bagSum::Eq a => Bag a -> Bag a -> Bag a
@@ -77,7 +65,7 @@ module Bags where
    --if one bag is null, returns the other bag
     |null bag2 = bag1
     |null bag1 = bag2
-   {--if the item exists in both bags, adds up the total no. of occurences into the second bag
+   {--if the item exists in both bags, adds up the total no. of occurrences into the second bag
    and deletes from the first and recurses--}
     |itemExists item bag2 =
       bagSum (itemDelete item bag1) (itemPut item (number+(getNumberOfItem item bag2)) bag2)
@@ -86,37 +74,23 @@ module Bags where
       bagSum (itemDelete item bag1) (itemPut item number bag2)
     where ((item,number):rbag) = bag1
 
-
---  bagIntersection::Eq a=> Bag a -> Bag a -> Bag a
---  bagIntersection bag1 bag2 = bagIntersectionA bag1 bag2 bcreate
+ --calls auxiliary function bagIntersectionA with another empty bag
+  bagIntersection::Eq a=> Bag a -> Bag a -> Bag a
+  bagIntersection bag1 bag2 = bagIntersectionA bag1 bag2 bcreate
 
   bagIntersectionA::Eq a=> Bag a -> Bag a -> Bag a -> Bag a
   bagIntersectionA bag1 bag2 bagnew
+   --Once the first bag has all items deleted (if any), returns the new bag
     |null bag1 = bagnew
+   --if either bag is empty, there is no intersection so returns empty bag
     |null bag1 || null bag2 = bcreate
+   {--if the item exists in both bags, adds to the new bag and recurses through the first bag
+   using the smallest number of occurrences of the two bags--}
     |itemExists item bag2 =
-      bagIntersectionA (itemDelete item bag1){----} bag2 {----}(itemPut item (smallestValue number (getNumberOfItem item bag2)) bagnew)
+      bagIntersectionA (itemDelete item bag1) bag2 (itemPut item (smallestValue number (getNumberOfItem item bag2)) bagnew)
+   --if the item doesn't exist in both bags, recurses without adding to the new bag
     |otherwise = bagIntersectionA (itemDelete item bag1) bag2 bagnew
     where ((item,number):rbag) = bag1
-
-  bagIntersection::Eq a=> Bag a -> Bag a -> Bag a
-  bagIntersection [] _ = []
-  bagIntersection _ [] = []
-  bagIntersection bag1 bag2
-  --  |itemExists (fst h1) bag2 = (h1:bagIntersection t1 bag2)
-  --  |otherwise = bagIntersection t1 bag2
-  {--  |itemExists item bag2 && number < getNumberOfItem item bag2 =
-      (h1:bagIntersection t1 bag2)
-    |itemExists item bag2 && number > getNumberOfItem item bag2 =
-      (itemPut item (getNumberOfItem item bag2) bag1) ++ (bagIntersection t1 bag2) --}
-    |itemExists item bag2 =
-      (itemPut item (smallestValue number (getNumberOfItem item bag2)) bag1) ++ (bagIntersection (itemDelete item bag1) bag2)
-    |otherwise = bagIntersection t1 bag2
-    where ((item,number):t1) = bag1
-
-  --if it exitst and no1<no2, keep and recurse, using t1
-  --if it exists and no2<no1,replace with no2 and recurse, using t1
-  --if it doesn't exist, delete and recurse
 
   --function used to delete an item
   itemDelete::Eq a => a -> Bag a -> Bag a
@@ -126,7 +100,7 @@ module Bags where
     |otherwise = ((headItem,number):itemDelete item rbag)
     where ((headItem,number):rbag)=bag
 
-  --function used to get the number of occurences in a bag given the item
+  --function used to get the number of occurrences in a bag given the item
   getNumberOfItem::Eq a => a -> Bag a -> Int
   getNumberOfItem item bag
     |null bag=error"item not present"
@@ -142,7 +116,7 @@ module Bags where
     |otherwise = itemExists item rbag
     where ((headItem,number):rbag) = bag
 
-  --increments the number of occurences of an item in a bag
+  --increments the number of occurrences of an item in a bag
   numberIncrement::Eq a => a -> Bag a -> Int
   numberIncrement item bag = (getNumberOfItem item bag) + 1
 
