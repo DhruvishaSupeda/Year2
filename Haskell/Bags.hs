@@ -26,18 +26,16 @@ module Bags where
   listToBag list1 = listToBagA list1 bcreate
 
   listToBagA::Eq a => [a] -> Bag a -> Bag a
-  listToBagA list1 bag
+  listToBagA list bag
    --once/if the list is empty, returns the bag
-    |null list1 = bag
+    |null list = bag
    --inserts the item into the bag then recurses
     |otherwise = listToBagA t (bagInsert h bag) --inserts the item into the bag then recurses
-    where (h:t) = list1
+    where (h:t) = list
 
   bagEqual::Eq a => Bag a -> Bag a -> Bool
   bagEqual bag1 bag2
-   --if both bags empty, technically equal so returns true
     |null bag1 && null bag2 = True
-   --if only one is empty, return false as they are not equal
     |null bag1 || null bag2 = False
    --if the item in the first bag exists in the second bag, delete from both bags and recurse
     |(itemExists item bag2) && (number == getNumberOfItem item bag2) =
@@ -60,7 +58,6 @@ module Bags where
 
   bagSum::Eq a => Bag a -> Bag a -> Bag a
   bagSum bag1 bag2
-   --returns empty bag if both bags are null
     |null bag1 && null bag2 = bcreate
    --if one bag is null, returns the other bag
     |null bag2 = bag1
