@@ -8,19 +8,6 @@ module Bags where
   bcreate::Bag a
   bcreate=[]
 
- --Bags used for testing
-  testBag1::Bag String
-  testBag1 = [("test",3),("original",1),("generic string",15)]
-
-  testBag3::Bag String
-  testBag3 = [("test",3),("original",1),("generic string",15)]
-
-  testBag4::Bag String
-  testBag4 = [("original",1),("test",3),("generic string",15)]
-
-  testBag5::Bag String
-  testBag5 = [("hello",7),("test",4),("generic string",15)]
-
   --Calls the auxiliary function listToBagA with an empty bag
   listToBag::Eq a => [a] -> Bag a
   listToBag list1 = listToBagA list1 bcreate
