@@ -1,9 +1,13 @@
 
 module SolitaireOne where
-  type Card a = (String, String)
-  type Deck a = [(String,String)]
+  type Card = (String, String)
+  type Deck = [(String,String)]
+  type Foundations = [(String,String)]
+  type Columns = [(String,String)]
+  type Reserves =[(String,String)]
   type Suit = String
   type Pip = String
+  type EOBoard = [Foundations, Columns, Reserves] --god knows
 
 {-- --Create empty bag
   bcreate::Bag a
