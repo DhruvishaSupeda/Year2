@@ -5,7 +5,8 @@ module SolitaireOne where
   type Foundations = [(String,String)]
   type Columns = [(String,String)]
   type Reserves =[(String,String)]
-  type Suit = String
+  data Suit = Hearts | Diamonds | Clubs | Spades
+              deriving (Eq,Show)
   type Pip = String
   type EOBoard = [Foundations, Columns, Reserves] --god knows
 
