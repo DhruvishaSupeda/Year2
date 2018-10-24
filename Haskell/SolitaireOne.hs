@@ -1,8 +1,11 @@
 
 module SolitaireOne where
-  type Bag a = [(a, Int)]
+  type Card a = (String, String)
+  type Deck a = [(String,String)]
+  type Suit = String
+  type Pip = String
 
- --Create empty bag
+{-- --Create empty bag
   bcreate::Bag a
   bcreate=[]
 
@@ -19,4 +22,4 @@ module SolitaireOne where
     where (h:t) = list
 
   bagEqual::Eq a => Bag a -> Bag a -> Bool
-  bagEqual bag1 bag2
+  bagEqual bag1 bag2 --}
