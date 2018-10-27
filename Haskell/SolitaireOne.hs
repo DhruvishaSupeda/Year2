@@ -31,10 +31,17 @@ module SolitaireOne where
   bagEqual::Eq a => Bag a -> Bag a -> Bool
   bagEqual bag1 bag2 --}
 
-  --for returning predecesspr, use succ and pred of the enum types
+--------------------------------------------------------------------------------------------------------
+  --for returning predecessor, use succ and pred of the enum types
   --for the Pip so you just find the value, then add the suit back
   sCard::Card -> Card
   sCard start
-    |pip == King = (Ace,suit)
+    |pip == King = (Ace,suit) --is this correct???
     |otherwise = (succ pip,suit)
+    where (pip,suit) = start
+
+  pCard::Card -> Card
+  pCard start
+    |pip == Ace = (King,suit) --idk if this is right though, like is that the pred???
+    |otherwise = (pred pip,suit)
     where (pip,suit) = start
