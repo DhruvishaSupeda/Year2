@@ -1,14 +1,16 @@
 
 module SolitaireOne where
-  type Card = (String, String)
-  type Deck = [(String,String)]
-  type Foundations = [(String,String)]
-  type Columns = [(String,String)]
-  type Reserves =[(String,String)]
   data Suit = Hearts | Diamonds | Clubs | Spades
               deriving (Eq,Show)
-  type Pip = String
-  type EOBoard = [Foundations, Columns, Reserves] --god knows
+  data Pip = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King
+             deriving (Eq, Show, Enum)
+  type Card = (Pip, Suit)
+  type Deck = [Card]
+  type Foundations = [Card]
+  type Columns = [Card]
+  type Reserves =[Card]
+  --type EOBoard = [(Foundations), (Columns), (Reserves)] --god knows
+
 
 {-- --Create empty bag
   bcreate::Bag a
@@ -28,3 +30,11 @@ module SolitaireOne where
 
   bagEqual::Eq a => Bag a -> Bag a -> Bool
   bagEqual bag1 bag2 --}
+
+  --for returning predecesspr, use succ and pred of the enum types
+  --for the Pip so you just find the value, then add the suit back
+  sCard::Card -> Card
+  sCard start
+    |pip == King = (Ace,suit)
+    |otherwise = (succ pip,suit)
+    where (pip,suit) = start
