@@ -9,9 +9,14 @@ module SolitaireOne where
   type Foundations = [Card]
   type Columns = [Card]
   type Reserves =[Card]
-  --type EOBoard = [(Foundations), (Columns), (Reserves)] --god knows
+  type Hello = [[Pip,Suit]]
+  --type EOBoard = [[Foundations], [Columns], [Reserves]] --god knows
 
+  new::[[Int]]
+  new=sequence [[1,2,3], [7,27,37]]
 
+  help::Hello
+  help = [pip + suit | pip <- [Pip], suit <- [Suit]]
 {-- --Create empty bag
   bcreate::Bag a
   bcreate=[]
@@ -36,12 +41,22 @@ module SolitaireOne where
   --for the Pip so you just find the value, then add the suit back
   sCard::Card -> Card
   sCard start
-    |pip == King = (Ace,suit) --is this correct???
+    |isKing start = start --is this correct???
     |otherwise = (succ pip,suit)
     where (pip,suit) = start
 
   pCard::Card -> Card
   pCard start
-    |pip == Ace = (King,suit) --idk if this is right though, like is that the pred???
+    |isAce start = start --idk if this is right though, like is that the pred???
     |otherwise = (pred pip,suit)
     where (pip,suit) = start
+
+  isAce::Card -> Bool
+  isAce card
+    |fst card == Ace = True
+    |otherwise = False
+
+  isKing::Card -> Bool
+  isKing card
+    |fst card == King = True
+    |otherwise = False
