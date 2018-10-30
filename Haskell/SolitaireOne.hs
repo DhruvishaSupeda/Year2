@@ -6,17 +6,14 @@ module SolitaireOne where
              deriving (Eq, Show, Enum)
   type Card = (Pip, Suit)
   type Deck = [Card]
-  type Foundations = [Card]
-  type Columns = [Card]
-  type Reserves =[Card]
-  type Hello = [[Pip,Suit]]
-  --type EOBoard = [[Foundations], [Columns], [Reserves]] --god knows
+  type Foundations = Deck
+  type Columns = [Deck]
+  type Reserves = Deck
+  type EOBoard = (Foundations, [Columns], Reserves) --god knows
 
   new::[[Int]]
   new=sequence [[1,2,3], [7,27,37]]
 
-  help::Hello
-  help = [pip + suit | pip <- [Pip], suit <- [Suit]]
 {-- --Create empty bag
   bcreate::Bag a
   bcreate=[]
@@ -52,11 +49,25 @@ module SolitaireOne where
     where (pip,suit) = start
 
   isAce::Card -> Bool
-  isAce card
-    |fst card == Ace = True
-    |otherwise = False
+  isAce card = fst card == Ace
 
   isKing::Card -> Bool
-  isKing card
-    |fst card == King = True
-    |otherwise = False
+  isKing card = fst card == King
+
+  pack::Deck
+  pack = getthing Hearts ++ getthing Diamonds ++ getthing Clubs ++ getthing Spades
+
+  getthing::Suit -> Deck
+  getthing suit = map (addSuit suit) (enumFrom Pip) --doesn't work idk fycj this
+
+  addSuit::Suit -> Pip -> Card
+  addSuit suit pip = (pip,suit)
+
+  {-  |h2 == King = newDeck
+    |otherwise =
+  where (h2:t2) = enumFrom Pip
+        (h1:t1) = newDeck
+
+        map addSuit inputDeck-}
+
+  --get empty deck and suit, for each one go through list, get number and put with suit then recurse
