@@ -3,6 +3,7 @@ module SolitaireOne where
 
   import System.Random
   import Data.List
+  import Data.List.Split
 
   data Suit = Hearts | Diamonds | Clubs | Spades
               deriving (Eq,Show)
@@ -10,10 +11,10 @@ module SolitaireOne where
              deriving (Eq, Show, Enum)
   type Card = (Pip, Suit)
   type Deck = [Card]
-  type Foundations = Deck
+  type Foundations = [Deck]
   type Columns = [Deck]
   type Reserves = Deck
-  type EOBoard = (Foundations, [Columns], Reserves) --god knows
+  type EOBoard = (Foundations, Columns, Reserves) --god knows
 
   new::[[Int]]
   new=sequence [[1,2,3], [7,27,37]]
@@ -68,9 +69,14 @@ module SolitaireOne where
     |otherwise = createSuitDeck ((pCard h):deck) suit --recurse with predecessor
     where (h:t) = deck
 
-  shuffle::Deck->Deck
-  shuffle pack = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts))
+  shuffle::Deck
+  shuffle = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts))
 
   --function to get list of ints
   getInts::[Int]
   getInts = take 52 (randoms (mkStdGen 42)::[Int])
+
+  eODeal::EOBoard
+  eODeal = ([],chunksOf 6 (drop 4 shuffle),(take 4 shuffle))
+  --eODeal = drop 4 shuffle
+  --(Foundations, [Columns], Reserves)
