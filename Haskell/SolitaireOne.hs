@@ -1,5 +1,9 @@
 
 module SolitaireOne where
+
+  import System.Random
+  import Data.List
+
   data Suit = Hearts | Diamonds | Clubs | Spades
               deriving (Eq,Show)
   data Pip = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King
@@ -59,11 +63,14 @@ module SolitaireOne where
 
   createSuitDeck::Deck -> Suit -> Deck
   createSuitDeck deck suit
-    |null deck = createSuitDeck [(King, suit)] suit
-    |isAce h = deck
-    |otherwise = createSuitDeck ((pCard h):deck) suit
+    |null deck = createSuitDeck [(King, suit)] suit --if not started, put king in and start
+    |isAce h = deck --if head is ace, stop
+    |otherwise = createSuitDeck ((pCard h):deck) suit --recurse with predecessor
     where (h:t) = deck
 
-  
+  shuffle::Deck->Deck
+  shuffle pack = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts))
 
-  --get empty deck and suit, for each one go through list, get number and put with suit then recurse
+  --function to get list of ints
+  getInts::[Int]
+  getInts = take 52 (randoms (mkStdGen 42)::[Int])
