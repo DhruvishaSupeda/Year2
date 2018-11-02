@@ -55,19 +55,15 @@ module SolitaireOne where
   isKing card = fst card == King
 
   pack::Deck
-  pack = getthing Hearts ++ getthing Diamonds ++ getthing Clubs ++ getthing Spades
+  pack = (createSuitDeck [] Hearts) ++ (createSuitDeck [] Diamonds) ++ (createSuitDeck [] Clubs) ++ (createSuitDeck [] Spades)
 
-  getthing::Suit -> Deck
-  getthing suit = map (addSuit suit) (enumFrom Pip) --doesn't work idk fycj this
+  createSuitDeck::Deck -> Suit -> Deck
+  createSuitDeck deck suit
+    |null deck = createSuitDeck [(King, suit)] suit
+    |isAce h = deck
+    |otherwise = createSuitDeck ((pCard h):deck) suit
+    where (h:t) = deck
 
-  addSuit::Suit -> Pip -> Card
-  addSuit suit pip = (pip,suit)
-
-  {-  |h2 == King = newDeck
-    |otherwise =
-  where (h2:t2) = enumFrom Pip
-        (h1:t1) = newDeck
-
-        map addSuit inputDeck-}
+  
 
   --get empty deck and suit, for each one go through list, get number and put with suit then recurse
