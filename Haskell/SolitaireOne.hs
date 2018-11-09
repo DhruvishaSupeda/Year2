@@ -19,6 +19,14 @@ module SolitaireOne where
 --------------------------------------------------------------------------------------------------------
   --for returning predecessor, use succ and pred of the enum types
   --for the Pip so you just find the value, then add the suit back
+
+  listhing::Deck
+  listhing = take 6 shuffle
+
+  foundation::Deck
+  foundation = [(Ace,Hearts),(Ace,Diamonds),(Ace,Clubs),(Ace,Spades)]
+
+
   sCard::Card -> Card
   sCard card = (succ (fst card),(snd card))
 
@@ -59,3 +67,17 @@ module SolitaireOne where
     where (f,c,r) = board
   --toFoundations::EOBoard -> EOBoard
   --toFoundations startBoard = [2*n|n<-list,n==succ item]
+-----------------------------------------------------------------------------------------------
+  createFound::Card -> Card -> Card
+  createFound f t
+    |f == pCard t = t
+    |otherwise = f
+
+    --checkList list@(h:t) f = checkList t [sCard n|n<-f, n == pCard h]
+    --checkList (h:t) f = checkList t (map (\x -> sCard x) f)
+
+  checkList::Deck->Deck->Deck
+  checkList f [] = f
+  checkList f l@(h:t)
+    | isAce h = checkList (h:f) t
+    | otherwise = checkList (map (\x -> (createFound x h)) f) t
