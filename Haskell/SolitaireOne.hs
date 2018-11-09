@@ -11,7 +11,7 @@ module SolitaireOne where
              deriving (Eq, Show, Enum)
   type Card = (Pip, Suit)
   type Deck = [Card]
-  type Foundations = [Deck]
+  type Foundations = Deck
   type Columns = [Deck]
   type Reserves = Deck
   type EOBoard = (Foundations, Columns, Reserves) --god knows
@@ -59,14 +59,20 @@ module SolitaireOne where
   eODeal::EOBoard
   eODeal = ([], chunksOf 6 (drop 4 shuffle), (take 4 shuffle))
 
-  getColumns::[Int] -> [Int]
-  getColumns board = [2*n|n<-board,n>3]
-
   getColumnHeads::EOBoard -> Card
   getColumnHeads board = head (head c)
     where (f,c,r) = board
   --toFoundations::EOBoard -> EOBoard
   --toFoundations startBoard = [2*n|n<-list,n==succ item]
+
+  getColumns::EOBoard -> Columns
+  getColumns board = c
+    where (f,c,r) = board
+
+{-}  getColumnHeads::EOBoard->Deck
+  getColumnHeads board = [h|(h:t) <- c]
+    where (f,c,r) = board-}
+
 -----------------------------------------------------------------------------------------------
   createFound::Card -> Card -> Card
   createFound f t
@@ -76,8 +82,23 @@ module SolitaireOne where
     --checkList list@(h:t) f = checkList t [sCard n|n<-f, n == pCard h]
     --checkList (h:t) f = checkList t (map (\x -> sCard x) f)
 
-  checkList::Deck->Deck->Deck
+    {-master::EOBOard -> EOBoard
+    master first
+      |first == current? = current
+      |god knows-}
+
+  checkList::Foundations -> Deck -> Foundations
   checkList f [] = f
   checkList f l@(h:t)
-    | isAce h = checkList (h:f) t
-    | otherwise = checkList (map (\x -> (createFound x h)) f) t
+    |isAce h = checkList (h:f) t
+    |otherwise = checkList (map (\x -> (createFound x h)) f) t
+
+  checkColumns::Columns -> Foundations -> Foundations
+  checkColumns [] f = f
+  checkColumns c@(h:t) f
+    |isAce (head h) = checkColumns t ((head h):f)
+    |otherwise = checkColumns t (map (\x -> createFound x (head h)) f)
+--  BOTH WORK SOMEHOW
+  {-checkColumns::Columns -> Foundations -> Foundations
+  checkColumns c f = checkList f columnHeads
+    where columnHeads = [h|(h:t) <- c]-}
