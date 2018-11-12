@@ -73,13 +73,12 @@ module SolitaireOne where
   getInts::[Int]
   getInts = take 52 (randoms (mkStdGen 42)::[Int])
 
-  --Stolen from Phil
-  --getInts::[Int]
-  --getInts = --[-1413815254,-1061608874,-1917740473,-1657021025,-1880775037,2035860998,-637623249,-505720016,284711073,-50861994,1400652750,-1482683619,484131249,-809310050,-210300391,1327025203,-1460604393,-1746252676,-1272570677,-793916433,2110898577,1943820126,1100594482,1932054375,-2037322212,161763804,841243188,1591843789,1274090478,1622254071,1419808067,-285385319,-713065031,-418511541,1377049314,-2036402777,429849394,168983222,-540749153,2062321714,-137535921,1549570322,-1421425515,-90023650,1224337--6,-1931152578,-672344479,-529526395,482373815,1959926423,580734309,-991618397]
-
   --Splits the shuffled deck into a playable board
   eODeal::EOBoard
   eODeal = ([], chunksOf 6 (drop 4 shuffle), (take 4 shuffle))
+
+  eODeal2::EOBoard
+  eODeal2 = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
 
   --Atm, gets head of the first columns (three of clubs or whatever it is)
   getColumnHeads::EOBoard -> Card
@@ -100,25 +99,27 @@ module SolitaireOne where
 -----------------------------------------------------------------------------------------------
   --Create foundations - used by checkList to check if the card should be put into Foundations
   --Returns the tail card if yes, otherwise returns the original card to be put in foundations
-  createFound::Card -> Card -> Card
+  {-createFound::Card -> Card -> Card
   createFound f t
     |f == pCard t = t
-    |otherwise = f
+    |otherwise = f -}
 
     --checkList list@(h:t) f = checkList t [sCard n|n<-f, n == pCard h]
     --checkList (h:t) f = checkList t (map (\x -> sCard x) f)
 
-    {-master::EOBOard -> EOBoard
-    master first
-      |first == current? = current
-      |god knows-}
+  toFoundations::EOBoard -> EOBoard
+  toFoundations initialBoard
+    |initialBoard == newBoard = initialBoard
+    |otherwise = toFoundations newBoard
+    where newBoard = removeFromColumns (removeFromReserves initialBoard)
 
   --For each item in the list, puts the successor card in if needed using createFound, otherwise keeps original card
   checkList::Foundations -> Deck -> Foundations
   checkList f [] = f
   checkList f l@(h:t)
     |isAce h = checkList (h:f) t
-    |otherwise = checkList (map (\x -> (createFound x h)) f) t
+    -- |otherwise = checkList (map (\x -> (createFound x h)) f) t
+    |otherwise = checkList (map (\x -> (if x == pCard h then h else x)) f) t --originally had createFound
     --Change to list comprehension maybe so doesn't look like copying
 
   --Attempts to remove the card from reserves if already in f
@@ -132,9 +133,10 @@ module SolitaireOne where
 
   --Attempts to remove head from column if already in f
   removeFromColumns::EOBoard -> EOBoard
-  removeFromColumns board = (newF,map (\x -> checkHeads x newF) c,r)
+  removeFromColumns board = (newF,map (\x -> checkHeads x newF) c, r)
     where (f,c,r) = board
           newF = checkList f [head n|n<-c] --this is the column heads
+          --columns = filter (\x -> not(null x)) c
   --for each head of each column, checks if in Foundations (using other function)
   --if it is, return tail else return full thing
   --Try and change map to filter or list comp
@@ -142,6 +144,7 @@ module SolitaireOne where
   --first deck is column
   --if the head is in f, returns just the tail, otherwise returns full column
   checkHeads::Deck -> Deck -> Deck
+  checkHeads [] _ = []
   checkHeads (h:t) f
     |elem h f = t
     |otherwise = (h:t)
