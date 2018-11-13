@@ -17,9 +17,9 @@ module SolitaireOne where
   import Data.List.Split
 
   data Suit = Hearts | Diamonds | Clubs | Spades
-              deriving (Eq,Show)
+              deriving (Eq,Show,Ord)
   data Pip = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King
-             deriving (Eq, Show, Enum)
+             deriving (Eq, Show, Enum, Ord)
   type Card = (Pip, Suit)
   type Deck = [Card]
   type Foundations = Deck
@@ -80,6 +80,9 @@ module SolitaireOne where
   eODeal2::EOBoard
   eODeal2 = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
 
+  eODeal3::EOBoard
+  eODeal3 = ([], chunksOf 6 pack, [])
+
   --Atm, gets head of the first columns (three of clubs or whatever it is)
   getColumnHeads::EOBoard -> Card
   getColumnHeads board = head (head c)
@@ -116,7 +119,7 @@ module SolitaireOne where
   --For each item in the list, puts the successor card in if needed using createFound, otherwise keeps original card
   checkList::Foundations -> Deck -> Foundations
   checkList f [] = f
-  checkList f l@(h:t)
+  checkList f (h:t)
     |isAce h = checkList (h:f) t
     -- |otherwise = checkList (map (\x -> (createFound x h)) f) t
     |otherwise = checkList (map (\x -> (if x == pCard h then h else x)) f) t --originally had createFound
@@ -124,22 +127,39 @@ module SolitaireOne where
 
   --Attempts to remove the card from reserves if already in f
   removeFromReserves::EOBoard -> EOBoard
-  removeFromReserves board = (newF,c,(filter (\x -> not(elem x newF))) r)
+  removeFromReserves board = (newF, c, (removeFromReservesA newF r))
+  --removeFromReserves board = (newF, c, [x,y|x<-newF, y<-r, compare y x == GT])
+  -- [y|x<-newF, y<-r, compare y x == GT]
+  --removeFromReserves board = (newF,c,(filter (\x -> not(elem x newF))) r)
+  -- if compare  == LT or EQ, then
+  --removeFromReserves board = (newF,c,map (\x -> if not(elem x newF then )))
+  -- map (\x -> [y|y<-r, compare y x == GT])
     where (f,c,r) = board
           newF = checkList f r --change newF to something else
 
   --list comp equivalent to filter maybe
   --(x|x<-r, not(elem x newF))
 
+  removeFromReservesA::Deck->Deck->Deck
+  removeFromReservesA newF [] = []
+  --removeFromReservesA [] r = r
+  --  |null h = newF
+  --  |null _ [] = []
+  removeFromReservesA newF@(h:t) r = removeFromReservesA t (filter (\x -> compare x h == GT) r)
+
   --Attempts to remove head from column if already in f
   removeFromColumns::EOBoard -> EOBoard
   removeFromColumns board = (newF,map (\x -> checkHeads x newF) c, r)
     where (f,c,r) = board
-          newF = checkList f [head n|n<-c] --this is the column heads
+          newF = checkList f [head n|n<-c, not(null n)] --this is the column heads
           --columns = filter (\x -> not(null x)) c
   --for each head of each column, checks if in Foundations (using other function)
   --if it is, return tail else return full thing
   --Try and change map to filter or list comp
+
+  heads::EOBoard->Deck
+  heads board = [head n|n<-c, not(null n)]
+    where (f,c,r) = board
 
   --first deck is column
   --if the head is in f, returns just the tail, otherwise returns full column
@@ -159,5 +179,5 @@ module SolitaireOne where
 --  BOTH WORK SOMEHOW
   checkColumns::Columns -> Foundations -> Foundations
   checkColumns c f = checkList f columnHeads
-    where columnHeads = [head n|n<-c] --doesn't cause errors
+    where columnHeads = [head n|n<-c, not(null n)] --doesn't cause errors
     --[h|(h:t)<-c] - from H
