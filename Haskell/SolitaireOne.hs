@@ -131,7 +131,7 @@ module SolitaireOne where
   --removeFromReserves board = (newF, c, [x,y|x<-newF, y<-r, compare y x == GT])
   -- [y|x<-newF, y<-r, compare y x == GT]
   --removeFromReserves board = (newF,c,(filter (\x -> not(elem x newF))) r)
-  -- if compare  == LT or EQ, then
+  --00 if compare  == LT or EQ, then
   --removeFromReserves board = (newF,c,map (\x -> if not(elem x newF then )))
   -- map (\x -> [y|y<-r, compare y x == GT])
     where (f,c,r) = board
@@ -142,7 +142,7 @@ module SolitaireOne where
 
   removeFromReservesA::Deck->Deck->Deck
   removeFromReservesA newF [] = []
-  --removeFromReservesA [] r = r
+  removeFromReservesA [] r = r
   --  |null h = newF
   --  |null _ [] = []
   removeFromReservesA newF@(h:t) r = removeFromReservesA t (filter (\x -> compare x h == GT) r)
@@ -151,15 +151,17 @@ module SolitaireOne where
   removeFromColumns::EOBoard -> EOBoard
   removeFromColumns board = (newF,map (\x -> checkHeads x newF) c, r)
     where (f,c,r) = board
-          newF = checkList f [head n|n<-c, not(null n)] --this is the column heads
+          newF = checkList f columnHeads --this is the column heads
+          columnHeads = [head n|n<-c, not(null n)]
+          --[head n|n<-c, not(null n)]
           --columns = filter (\x -> not(null x)) c
   --for each head of each column, checks if in Foundations (using other function)
   --if it is, return tail else return full thing
   --Try and change map to filter or list comp
 
-  heads::EOBoard->Deck
+{-}  heads::EOBoard->Deck
   heads board = [head n|n<-c, not(null n)]
-    where (f,c,r) = board
+    where (f,c,r) = board-}
 
   --first deck is column
   --if the head is in f, returns just the tail, otherwise returns full column
@@ -179,5 +181,5 @@ module SolitaireOne where
 --  BOTH WORK SOMEHOW
   checkColumns::Columns -> Foundations -> Foundations
   checkColumns c f = checkList f columnHeads
-    where columnHeads = [head n|n<-c, not(null n)] --doesn't cause errors
+    where columnHeads = [head n|n<-c, not(null (head n))]
     --[h|(h:t)<-c] - from H
