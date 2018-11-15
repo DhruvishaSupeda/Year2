@@ -36,11 +36,15 @@ module SolitaireOne where
 
   --Returns the successor card of the card passed in
   sCard::Card -> Card
-  sCard card = (succ (fst card),(snd card))
+  sCard card
+    |isKing card = (Ace,(snd card))
+    |otherwise = (succ (fst card),(snd card))
 
   --Returns the predecessor card of the card passed in
   pCard::Card -> Card
-  pCard card = (pred (fst card),(snd card))
+  pCard card
+    |isAce card =(King,(snd card))
+    |otherwise = (pred (fst card),(snd card))
 
   --Takes a card and returns true if it is an ace, and false otherwise
   isAce::Card -> Bool
@@ -71,7 +75,7 @@ module SolitaireOne where
 
   --function to get list of ints using random thing
   getInts::[Int]
-  getInts = take 52 (randoms (mkStdGen 42)::[Int])
+  getInts = take 52 (randoms (mkStdGen 45)::[Int])
 
   --Splits the shuffled deck into a playable board
   eODeal::EOBoard
@@ -83,32 +87,21 @@ module SolitaireOne where
   eODeal3::EOBoard
   eODeal3 = ([], chunksOf 6 pack, [])
 
-  --Atm, gets head of the first columns (three of clubs or whatever it is)
-  getColumnHeads::EOBoard -> Card
-  getColumnHeads board = head (head c)
-    where (f,c,r) = board
-  --toFoundations::EOBoard -> EOBoard
-  --toFoundations startBoard = [2*n|n<-list,n==succ item] no clue what this is
-
   --Returns the columns
   getColumns::EOBoard -> Columns
   getColumns board = c
     where (f,c,r) = board
 
-{-}  getColumnHeads::EOBoard->Deck
-  getColumnHeads board = [h|(h:t) <- c]
-    where (f,c,r) = board-}
-
 -----------------------------------------------------------------------------------------------
-  --Create foundations - used by checkList to check if the card should be put into Foundations
+  --Create foundations - used by getFoundations to check if the card should be put into Foundations
   --Returns the tail card if yes, otherwise returns the original card to be put in foundations
   {-createFound::Card -> Card -> Card
   createFound f t
     |f == pCard t = t
     |otherwise = f -}
 
-    --checkList list@(h:t) f = checkList t [sCard n|n<-f, n == pCard h]
-    --checkList (h:t) f = checkList t (map (\x -> sCard x) f)
+    --getFoundations list@(h:t) f = getFoundations t [sCard n|n<-f, n == pCard h]
+    --getFoundations (h:t) f = getFoundations t (map (\x -> sCard x) f)
 
   toFoundations::EOBoard -> EOBoard
   toFoundations initialBoard
@@ -117,12 +110,12 @@ module SolitaireOne where
     where newBoard = removeFromColumns (removeFromReserves initialBoard)
 
   --For each item in the list, puts the successor card in if needed using createFound, otherwise keeps original card
-  checkList::Foundations -> Deck -> Foundations
-  checkList f [] = f
-  checkList f (h:t)
-    |isAce h = checkList (h:f) t
-    -- |otherwise = checkList (map (\x -> (createFound x h)) f) t
-    |otherwise = checkList (map (\x -> (if x == pCard h then h else x)) f) t --originally had createFound
+  getFoundations::Foundations -> Deck -> Foundations
+  getFoundations f [] = f
+  getFoundations f (h:t)
+    |isAce h = getFoundations (h:f) t
+    -- |otherwise = getFoundations (map (\x -> (createFound x h)) f) t
+    |otherwise = getFoundations (map (\x -> (if x == pCard h then h else x)) f) t --originally had createFound
     --Change to list comprehension maybe so doesn't look like copying
 
   --Attempts to remove the card from reserves if already in f
@@ -135,7 +128,7 @@ module SolitaireOne where
   --removeFromReserves board = (newF,c,map (\x -> if not(elem x newF then )))
   -- map (\x -> [y|y<-r, compare y x == GT])
     where (f,c,r) = board
-          newF = checkList f r --change newF to something else
+          newF = getFoundations f r --change newF to something else
 
   --list comp equivalent to filter maybe
   --(x|x<-r, not(elem x newF))
@@ -147,11 +140,15 @@ module SolitaireOne where
   --  |null _ [] = []
   removeFromReservesA newF@(h:t) r = removeFromReservesA t (filter (\x -> compare x h == GT) r)
 
+  getColumnHeads::EOBoard->Deck
+  getColumnHeads (f,c,r) = [head n|n<-c, not(null n)]
+
+
   --Attempts to remove head from column if already in f
   removeFromColumns::EOBoard -> EOBoard
-  removeFromColumns board = (newF,map (\x -> checkHeads x newF) c, r)
+  removeFromColumns board = (newF,(map (\x -> checkHeads x newF) c), r)
     where (f,c,r) = board
-          newF = checkList f columnHeads --this is the column heads
+          newF = getFoundations f columnHeads --this is the column heads
           columnHeads = [head n|n<-c, not(null n)]
           --[head n|n<-c, not(null n)]
           --columns = filter (\x -> not(null x)) c
@@ -159,7 +156,7 @@ module SolitaireOne where
   --if it is, return tail else return full thing
   --Try and change map to filter or list comp
 
-{-}  heads::EOBoard->Deck
+{-  heads::EOBoard->Deck
   heads board = [head n|n<-c, not(null n)]
     where (f,c,r) = board-}
 
@@ -169,9 +166,8 @@ module SolitaireOne where
   checkHeads [] _ = []
   checkHeads (h:t) f
     |elem h f = t
+    |((length (h:t) == 1) && (not(elem h f))) = t -- init (h:t)
     |otherwise = (h:t)
-
-
 
   {-checkColumns::Columns -> Foundations -> Foundations
   checkColumns [] f = f
@@ -180,6 +176,6 @@ module SolitaireOne where
     |otherwise = checkColumns t (map (\x -> createFound x (head h)) f)-}
 --  BOTH WORK SOMEHOW
   checkColumns::Columns -> Foundations -> Foundations
-  checkColumns c f = checkList f columnHeads
+  checkColumns c f = getFoundations f columnHeads
     where columnHeads = [head n|n<-c, not(null (head n))]
     --[h|(h:t)<-c] - from H
