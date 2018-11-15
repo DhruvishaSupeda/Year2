@@ -75,7 +75,7 @@ module SolitaireOne where
 
   --function to get list of ints using random thing
   getInts::[Int]
-  getInts = take 52 (randoms (mkStdGen 45)::[Int])
+  getInts = take 52 (randoms (mkStdGen 50)::[Int])
 
   --Splits the shuffled deck into a playable board
   eODeal::EOBoard
@@ -166,7 +166,7 @@ module SolitaireOne where
   checkHeads [] _ = []
   checkHeads (h:t) f
     |elem h f = t
-    |((length (h:t) == 1) && (not(elem h f))) = t -- init (h:t)
+    |((length (h:t) == 1) && (not(elem h f))) = init (h:t)
     |otherwise = (h:t)
 
   {-checkColumns::Columns -> Foundations -> Foundations
