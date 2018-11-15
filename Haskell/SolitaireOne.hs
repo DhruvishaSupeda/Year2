@@ -115,11 +115,7 @@ module SolitaireOne where
   checkHeads (h:t) f
     --If the card is in foundations, remove by returning the list without it
     |elem h f = t
-<<<<<<< HEAD
-    |((length (h:t) == 1) && (not(elem h f))) = init (h:t)
-=======
     --If only the head remains, and the head is not in foundations, return the head
     |((length (h:t) == 1) && (not(elem h f))) = init (h:t)
     --Otherwise, return entire list
->>>>>>> 6325f6f9be50efde44aaa2c1c76ff5a6595e9c0f
     |otherwise = (h:t)
