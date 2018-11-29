@@ -52,7 +52,8 @@ module SolitaireTwo where
     | --tail-head recursion going through reserves, check if can move to any column
     |map (\res -> )
     where (f,c,(hr:tr)) = board
-    columnHeads = [head n|n<-c, not(null n)]
+          columnHeads = [head n|n<-c, not(null n)]
+          newF = 
 
   {-for columns
     for each head, check if can move to foundations and return that EOBoard
