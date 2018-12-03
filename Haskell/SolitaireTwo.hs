@@ -29,40 +29,45 @@ module SolitaireTwo where
 {-reserves columns - for each reserve, check all heads and if can put it there,  add to list of EOBoards-}
 
 
-  resToColumns::EOBoard->[EOBoard]
-  resToColumns board = resToColumnsA board r []
-    where (f,c,r) = board
 
-  --resToColumnsA::EOBoard->Deck->[EOBoard]->[EOBoard]
-  --resToColumnsA board@(f,c,r) res newBoard = resToColumnsA board (tail res) (newBoard ++ (f, (map (\col -> (if ((pCard (head col))==n) then (n:col) else col) c)), [(filter (\n -> not (elem n (head col))) r)|col<-c]))
+  resToColumns::EOBoard->[EOBoard]->[EOBoard] --IT WORKS
+  resToColumns board@(f,c,r) newBoards = [resToColumnsA board res|res<-r, not(null res)]
 
-  resToColumnsB::EOBoard->Deck
-  resToColumnsB board@(f,c,r) = map (\col -> (head col) c)
+  resToColumnsA::EOBoard->Card->EOBoard
+  resToColumnsA board@(f,c,r) card
+    |board==newBoard = ([],[[]],[]) --maybe change so in findMoves filters all boards that are same as original, or use Maybe andNothing
+    |otherwise = newBoard
+    where newC = (map (\col -> if sCard card == head col then card:col else col) c)
+          cHeads = [head n|n<-newC, not(null n)]
+          newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
-  colToReserves::EOBoard->[EOBoard]->[EOBoard]
+
+--Do same but just for kings (move to empty column)
+
+  colToReserves::EOBoard->[EOBoard]
+  colToReserves board@(f,c,r) = [board]
+    |length r >= 8 = ([],[[]],[])
+  --else, return board with column head moved to res
+  (f,  c ,r)
+  map (\col -> tail col) c
+  where cHeads = [head n|n<-c, not(null n)]
+
+  colToReserves::EOBoard->Card->[EOBoard]
+  colToReserves board@(f,c,r) card = (f,c,r)
+
+
+  {-colToReserves::EOBoard->[EOBoard]->[EOBoard]
   colToReserves board@(f,c,r) list
     |length r > 8 = []
     |length r > 5 = [] --if reserves are too long, don't move it maybe?
     |otherwise = list ++ (map (\col -> makeColReserves (head col) board) c)
 
   makeColReserves::Card->EOBoard->EOBoard
-  makeColReserves card board@(f,c,r) = (f,map (\n -> (if not(elem (head n) r) then n else (tail n)) c)     ,filter (\n -> not(elem cHeads)))
-    where cHeads = [head n|n<-c, not(null n)] --its all wrong sigh
-          updatedC =
+  makeColReserves card board@(f,c,r) = (f,map (\n -> (if not(elem (head n) r) then n else (tail n)) c),filter (\n -> not(elem cHeads)))
+    where cHeads = [head n|n<-c, not(null n)] --its all wrong sigh-}
 
   {- for each column, have eoboard to put in reserves
   -}
-
-
-
-  {-resToColumnsA::EOBoard->Deck->[EOBoard]->[EOBoard]
-  resToColumnsA board (hr:tr) posMoves = posMoves
-  --  |  if new board with move same as original, return board newList
-  --  | tail-head recursion going through reserves, check if can move to any column
-  --  |map (\col -> )
-    where (f,c,r) = board
-          columnHeads = [head n|n<-c, not(null n)] --naaaaaahhhhhh
-          newF =-}
 
   {- for columns
     for each head, check if can move to foundations and return that EOBoard
