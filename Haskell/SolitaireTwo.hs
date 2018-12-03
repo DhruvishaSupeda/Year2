@@ -41,14 +41,21 @@ module SolitaireTwo where
           cHeads = [head n|n<-newC, not(null n)]
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
-  {-kingToEmpty::EOBoard->Maybe [EOBoard]
+  kingToEmpty::EOBoard->[EOBoard]
   kingToEmpty board@(f,c,r)
-    |((filter (\n -> isKing n) r)==[]) = Nothing
-    |otherwise =-}
+    |(filter (\n -> null n) c)==[] = [([],[[]],[])]
+    |not((filter (\n -> isKing n) r)==[]) =
+    |otherwise =
+
+  --check if there is a null column
+  --if there is, check for king in reserves, if there is move to column and delete from Reserves
+  --iin columns if a head is a king,
+
+      --concantenate for reserves and columns, usin test to see if null
 
 --Do same but just for kings (move to empty column)
 
-  colToReserves::EOBoard->[EOBoard]  --DOESN'T WORK - RETURNS BUNCH OF EMPTY LISTS
+  colToReserves::EOBoard->[EOBoard]
   colToReserves board@(f,c,r)
     |length r >= 8 = [([],[[]],[])]
     |otherwise = [colToReservesA board (head col)|col<-c, not(null col)]
