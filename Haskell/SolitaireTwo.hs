@@ -30,8 +30,8 @@ module SolitaireTwo where
 
 
 
-  resToColumns::EOBoard->[EOBoard]->[EOBoard] --IT WORKS
-  resToColumns board@(f,c,r) newBoards = [resToColumnsA board res|res<-r, not(null res)]
+  resToColumns::EOBoard->[EOBoard] --IT WORKS
+  resToColumns board@(f,c,r) = [resToColumnsA board res|res<-r, not(null res)]
 
   resToColumnsA::EOBoard->Card->EOBoard
   resToColumnsA board@(f,c,r) card
@@ -41,20 +41,23 @@ module SolitaireTwo where
           cHeads = [head n|n<-newC, not(null n)]
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
+  {-kingToEmpty::EOBoard->Maybe [EOBoard]
+  kingToEmpty board@(f,c,r)
+    |((filter (\n -> isKing n) r)==[]) = Nothing
+    |otherwise =-}
 
 --Do same but just for kings (move to empty column)
 
-  colToReserves::EOBoard->[EOBoard]
-  colToReserves board@(f,c,r) = [board]
-    |length r >= 8 = ([],[[]],[])
-  --else, return board with column head moved to res
-  (f,  c ,r)
-  map (\col -> tail col) c
-  where cHeads = [head n|n<-c, not(null n)]
+  colToReserves::EOBoard->[EOBoard]  --DOESN'T WORK - RETURNS BUNCH OF EMPTY LISTS
+  colToReserves board@(f,c,r)
+    |length r >= 8 = [([],[[]],[])]
+    |otherwise = [colToReservesA board (head col)|col<-c, not(null col)]
 
-  colToReserves::EOBoard->Card->[EOBoard]
-  colToReserves board@(f,c,r) card = (f,c,r)
-
+  colToReservesA::EOBoard->Card->EOBoard
+  colToReservesA board@(f,c,r) card = newBoard
+    -- |board==newBoard = ([],[[]],[])
+    -- |otherwise = newBoard
+    where newBoard = (f,map (\col -> if (head col == card) then (tail col) else col) c,(card:r))
 
   {-colToReserves::EOBoard->[EOBoard]->[EOBoard]
   colToReserves board@(f,c,r) list
