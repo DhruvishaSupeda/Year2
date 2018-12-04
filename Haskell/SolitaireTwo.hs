@@ -52,10 +52,15 @@ module SolitaireTwo where
     --If king in column, get head and move it
 
   resToEmpty::EOBoard->[EOBoard]
-  resToEmpty board@(f,c,r) = [(f,newC card,newR card)|card<-kingCards]
+  resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards]
     where kingCards = filter (\res -> isKing res) r
           newR card = filter (\res -> res /= card) r
           newC card = [if col==[] then card:col else col|col<-c,not(kingExists col card)]
+
+  kingNewC::Columns->Card->Columns
+  kingNewC columns@(hc:tc) king
+    |null hc = (king:hc):tc
+    |otherwise = hc:kingNewC tc king
 
   kingExists::Deck->Card->Bool
   kingExists column king
