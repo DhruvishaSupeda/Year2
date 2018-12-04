@@ -44,8 +44,7 @@ module SolitaireTwo where
   kingToEmpty::EOBoard->[EOBoard]
   kingToEmpty board@(f,c,r)
     |filter (\n -> null n) c == [] = [([],[[]],[])] --check if there is an empty column
-    |otherwise = resToEmpty board
-    where cHeads = [head n|n<-c, not(null n)]
+    |otherwise = colToEmpty board
 
     --Do same but just for kings (move to empty column)
     --If king in reserves, move to empty column
@@ -55,18 +54,17 @@ module SolitaireTwo where
   resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards]
     where kingCards = filter (\res -> isKing res) r
           newR card = filter (\res -> res /= card) r
-          newC card = [if col==[] then card:col else col|col<-c,not(kingExists col card)]
 
   kingNewC::Columns->Card->Columns
   kingNewC columns@(hc:tc) king
     |null hc = (king:hc):tc
     |otherwise = hc:kingNewC tc king
 
-  kingExists::Deck->Card->Bool
-  kingExists column king
-    |null column = False
-    |((head column) == king) = True
-    |otherwise = False
+  colToEmpty::EOBoard->[EOBoard]
+  colToEmpty board@(f,c,r) = [(f,kingNewC (newC card) card,r)|card <- kingCards]
+    where cHeads = [head n|n<-c, not(null n)]
+          kingCards = filter (\card -> isKing card) cHeads
+          newC card = map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c
 
   colToReserves::EOBoard->[EOBoard]
   colToReserves board@(f,c,r)
