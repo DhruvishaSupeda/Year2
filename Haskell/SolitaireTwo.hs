@@ -17,18 +17,7 @@ module SolitaireTwo where
   findMoves :: EOBoard -> [EOBoard]
   findMoves board = [board,board]
 
-  {-For each head of column, check if can be moved into foundations,if can add result to EOBoard
-  (take stuff from first assignment)
-  Do the same for reserves (take function from first assignment)
-  Also have EOBoards of moving each head to reserves
-  Go through reserves, then go through column heads, if can put it there add to that (use ass1
-  for getting heads and using reserves - map/list comprehension)-}
-
-  --list comprehension - take x from reserves,if can move it make the newF and take out of reserves,
-  --and add that EOBoard to list of moves
-{-reserves columns - for each reserve, check all heads and if can put it there,  add to list of EOBoards-}
-
-
+----------------------------------------------------------------------------------------------------
 
   resToColumns::EOBoard->[EOBoard] --IT WORKS
   resToColumns board@(f,c,r) = [resToColumnsA board res|res<-r, not(null res)]
@@ -41,14 +30,12 @@ module SolitaireTwo where
           cHeads = [head n|n<-newC, not(null n)]
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
+------------------------------------------------------------------------------------------------------
+
   kingToEmpty::EOBoard->[EOBoard]
   kingToEmpty board@(f,c,r)
     |filter (\n -> null n) c == [] = [([],[[]],[])] --check if there is an empty column
-    |otherwise = colToEmpty board
-
-    --Do same but just for kings (move to empty column)
-    --If king in reserves, move to empty column
-    --If king in column, get head and move it
+    |otherwise = colToEmpty board ++ resToEmpty board
 
   resToEmpty::EOBoard->[EOBoard]
   resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards]
@@ -66,31 +53,41 @@ module SolitaireTwo where
           kingCards = filter (\card -> isKing card) cHeads
           newC card = map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c
 
+------------------------------------------------------------------------------------------------------
+
   colToReserves::EOBoard->[EOBoard]
   colToReserves board@(f,c,r)
     |length r >= 8 = [([],[[]],[])]
     |otherwise = [colToReservesA board (head col)|col<-c, not(null col)]
 
   colToReservesA::EOBoard->Card->EOBoard
-  colToReservesA board@(f,c,r) card = newBoard
-    -- |board==newBoard = ([],[[]],[])
-    -- |otherwise = newBoard
+  colToReservesA board@(f,c,r) card
+    |board==newBoard = ([],[[]],[])
+    |otherwise = newBoard
     where newBoard = (f,map (\col -> if (head col == card) then (tail col) else col) c,(card:r))
 
-  {-colToReserves::EOBoard->[EOBoard]->[EOBoard]
-  colToReserves board@(f,c,r) list
-    |length r > 8 = []
-    |length r > 5 = [] --if reserves are too long, don't move it maybe?
-    |otherwise = list ++ (map (\col -> makeColReserves (head col) board) c)
+-----------------------------------------------------------------------------------------------------
 
-  makeColReserves::Card->EOBoard->EOBoard
-  makeColReserves card board@(f,c,r) = (f,map (\n -> (if not(elem (head n) r) then n else (tail n)) c),filter (\n -> not(elem cHeads)))
-    where cHeads = [head n|n<-c, not(null n)] --its all wrong sigh-}
+  colToColumns::EOBoard->[EOBoard]
+  colToColumns board@(f,c,r) = [(f,(cNewC stack c),r)|stack<-stacks, (f,(cNewC stack c),r)/=board]
+    where stacks = [getStack col []|col<-c]
 
-  {- for each column, have eoboard to put in reserves
-  -}
+  getStack::Deck->Deck->Deck
+  getStack [] _ = []
+  getStack col@(h:t) stack
+    |null stack = getStack t [h]
+    |(last stack == pCard h) = getStack t stack++[h]
+    |otherwise = stack
 
-  {- for columns
-    for each head, check if can move to foundations and return that EOBoard
-    return EOBoard of moving it to reserves
-  -}
+  cNewC::Deck->Columns->Columns
+  cNewC stack c = [getNewColumn stack col|col<-c]
+
+  getNewColumn::Deck->Deck->Deck
+  getNewColumn stack col
+    |null col = col
+    |null stack = col
+    |head col == sCard (last stack) = stack++col
+    |isInfixOf stack col = col \\ stack --deletes it no matter what - make bool to see if can be moved
+      --go through oroginal columns, see if pCard for anything,ifitisreturn trye
+      --tail-head whooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+    |otherwise = col
