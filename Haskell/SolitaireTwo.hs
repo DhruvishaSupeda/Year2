@@ -17,6 +17,9 @@ module SolitaireTwo where
   findMoves :: EOBoard -> [EOBoard]
   findMoves board = [board,board]
 
+  hello::EOBoard
+  hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[],[],[],[],[],[]],[])
+
 ----------------------------------------------------------------------------------------------------
 
   resToColumns::EOBoard->[EOBoard] --IT WORKS
@@ -69,7 +72,7 @@ module SolitaireTwo where
 -----------------------------------------------------------------------------------------------------
 
   colToColumns::EOBoard->[EOBoard]
-  colToColumns board@(f,c,r) = [(f,(cNewC stack c),r)|stack<-stacks, (f,(cNewC stack c),r)/=board]
+  colToColumns board@(f,c,r) = [(f,(cNewC stack c board),r)|stack<-stacks, (f,(cNewC stack c board),r)/=board]
     where stacks = [getStack col []|col<-c]
 
   getStack::Deck->Deck->Deck
@@ -79,15 +82,20 @@ module SolitaireTwo where
     |(last stack == pCard h) = getStack t stack++[h]
     |otherwise = stack
 
-  cNewC::Deck->Columns->Columns
-  cNewC stack c = [getNewColumn stack col|col<-c]
+  cNewC::Deck->Columns->EOBoard->Columns
+  cNewC stack c board= [getNewColumn stack col board|col<-c]
 
-  getNewColumn::Deck->Deck->Deck
-  getNewColumn stack col
+  getNewColumn::Deck->Deck->EOBoard->Deck
+  getNewColumn stack col board@(f,c,r)
     |null col = col
     |null stack = col
     |head col == sCard (last stack) = stack++col
-    |isInfixOf stack col = col \\ stack --deletes it no matter what - make bool to see if can be moved
-      --go through oroginal columns, see if pCard for anything,ifitisreturn trye
-      --tail-head whooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+    |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
+
+  canBeMoved::Columns->Deck->Bool
+  canBeMoved _ [] = False
+  canBeMoved [] _ = False
+  canBeMoved columns@(h:t) stack
+    |head h == sCard (last stack) = True
+    |otherwise = canBeMoved t stack
