@@ -7,29 +7,50 @@ module SolitaireTwo where
   import Data.Maybe
 
 ----------------------------------------------------------------------------------------
+  shuffle::Int->Deck
+  shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
+
+  --Function to get list of random ints
+  getInts::Int->[Int]
+  getInts seed = take 52 (randoms (mkStdGen seed)::[Int])
+
+  --Splits the shuffled deck into a playable board
+  eODeal::Int->EOBoard
+  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))
+
+----------------------------------------------------------------------------------------
+
+  --eOExpt::Int->Int
+  --eOExpt = (foldr (+) 0 (map (\seed -> (eOGame (eODeal seed) 0)) seeds))
+  --  where seeds = take 100 (randoms (mkStdGen 42)::[Int])
+
+  eOGame::EOBoard->Int->Int
+  eOGame board score
+    |isNothing (chooseMove board) = score
+    |otherwise = eOGame (fromJust (chooseMove board)) (score+1)
 
   chooseMove :: EOBoard -> Maybe EOBoard
-  chooseMove board = Just board
-  --  |isAce head h =
-  --  where (f,c,r) = board
-  --      (h:t) = c
+  chooseMove board
+    |null (findMoves board) = Nothing
+    |otherwise = Just (toFoundations ((head (findMoves board)))) --choosing justhead means endlessloop if one move left
+
 
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board = [board,board]
+  findMoves board = filter (\n -> n/=([],[[]],[])) (resToColumns board++colToColumns board++kingToEmpty board) -- ++colToReserves board)
 
   hello::EOBoard
   hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[],[],[],[],[],[]],[])
 
 ----------------------------------------------------------------------------------------------------
 
-  resToColumns::EOBoard->[EOBoard] --IT WORKS
+  resToColumns::EOBoard->[EOBoard]
   resToColumns board@(f,c,r) = [resToColumnsA board res|res<-r, not(null res)]
 
   resToColumnsA::EOBoard->Card->EOBoard
   resToColumnsA board@(f,c,r) card
-    |board==newBoard = ([],[[]],[]) --maybe change so in findMoves filters all boards that are same as original, or use Maybe andNothing
+    |board==newBoard = ([],[[]],[])
     |otherwise = newBoard
-    where newC = (map (\col -> if sCard card == head col then card:col else col) c)
+    where newC = (map (\col -> if (not(isKing card) && sCard card == head col) then card:col else col) c)
           cHeads = [head n|n<-newC, not(null n)]
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
@@ -41,7 +62,7 @@ module SolitaireTwo where
     |otherwise = colToEmpty board ++ resToEmpty board
 
   resToEmpty::EOBoard->[EOBoard]
-  resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards]
+  resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards,r/=[]]
     where kingCards = filter (\res -> isKing res) r
           newR card = filter (\res -> res /= card) r
 
@@ -76,20 +97,20 @@ module SolitaireTwo where
     where stacks = [getStack col []|col<-c]
 
   getStack::Deck->Deck->Deck
-  getStack [] _ = []
   getStack col@(h:t) stack
+    |null col = stack
     |null stack = getStack t [h]
-    |(last stack == pCard h) = getStack t stack++[h]
+    |(not(isAce h) && (last stack == pCard h)) = getStack t stack++[h]
     |otherwise = stack
 
   cNewC::Deck->Columns->EOBoard->Columns
-  cNewC stack c board= [getNewColumn stack col board|col<-c]
+  cNewC stack c board= [getNewColumn stack col board|col<-c,col/=[]]
 
   getNewColumn::Deck->Deck->EOBoard->Deck
+  getNewColumn _ [] _ = []
+  getNewColumn [] _ _ = []
   getNewColumn stack col board@(f,c,r)
-    |null col = col
-    |null stack = col
-    |head col == sCard (last stack) = stack++col
+    |not(isKing (last stack)) && (head col == sCard (last stack)) = stack++col
     |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
 
@@ -97,5 +118,5 @@ module SolitaireTwo where
   canBeMoved _ [] = False
   canBeMoved [] _ = False
   canBeMoved columns@(h:t) stack
-    |head h == sCard (last stack) = True
+    |not(isKing (last stack)) && (head h == sCard (last stack)) = True
     |otherwise = canBeMoved t stack

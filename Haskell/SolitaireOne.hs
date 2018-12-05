@@ -35,6 +35,9 @@ module SolitaireOne where
   pack::Deck
   pack = (createSuitDeck [] Hearts) ++ (createSuitDeck [] Diamonds) ++ (createSuitDeck [] Clubs) ++ (createSuitDeck [] Spades)
 
+  order::EOBoard
+  order = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
+
   --Creates all of the cards for one particular suit
   createSuitDeck::[Card] -> Suit -> Deck
   createSuitDeck deck suit
@@ -47,16 +50,16 @@ module SolitaireOne where
     where (h:t) = deck
 
   --Returns a shuffled deck
-  shuffle::Deck
-  shuffle = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts))
+  {-shuffle::Int->Deck
+  shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts seed))
 
   --Function to get list of random ints
-  getInts::[Int]
-  getInts = take 52 (randoms (mkStdGen 64)::[Int])
+  getInts::Int->[Int]
+  getInts seed = take 52 (randoms (mkStdGen seed)::[Int])
 
   --Splits the shuffled deck into a playable board
-  eODeal::EOBoard
-  eODeal = ([], chunksOf 6 (drop 4 shuffle), (take 4 shuffle))
+  eODeal::Int->EOBoard
+  eODeal seed = ([], chunksOf 6 (drop 4 shuffle seed), (take 4 shuffle seed))-}
 
   --Main toFoundations function
   toFoundations::EOBoard -> EOBoard
