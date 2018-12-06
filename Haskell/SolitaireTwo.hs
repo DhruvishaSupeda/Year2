@@ -31,15 +31,15 @@ module SolitaireTwo where
 
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board
-    |null (findMoves board) = Nothing
-    |otherwise = Just (toFoundations ((head (findMoves board)))) --choosing justhead means endlessloop if one move left
+    |(findMoves board)==[] = Nothing
+    |otherwise = Just (head (findMoves board)) --choosing justhead means endlessloop if one move left
 
 
   findMoves :: EOBoard -> [EOBoard]
   findMoves board = filter (\n -> n/=([],[[]],[])) (resToColumns board++colToColumns board++kingToEmpty board) -- ++colToReserves board)
 
   hello::EOBoard
-  hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[],[],[],[],[]],[])
+  hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[],[],[],[]],[])
 
 ----------------------------------------------------------------------------------------------------
 
@@ -99,20 +99,19 @@ module SolitaireTwo where
     where stacks = [getStack col []|col<-c]
 
   getStack::Deck->Deck->Deck
+  getStack [] stack = stack
+  getStack (h:t) [] = getStack t [h]
   getStack col@(h:t) stack
-    |null col = stack
-    |null t = stack
-    |null stack = getStack t [h]
-    |(not(isAce h) && (last stack == pCard h)) = getStack t stack++[h]
+    |(not(isKing (last stack)) && ((sCard (last stack)) == h)) = getStack t (stack++[h])
     |otherwise = stack
 
   cNewC::Deck->Columns->EOBoard->Columns
-  cNewC stack c board= [getNewColumn stack col board|col<-c,col/=[]]
+  cNewC stack c board= [getNewColumn stack col board|col<-c]
 
   getNewColumn::Deck->Deck->EOBoard->Deck
   getNewColumn _ [] _ = []
+  getNewColumn [] col _ = col
   getNewColumn stack col board@(f,c,r)
-    |null stack = col
     |not(isKing (last stack)) && (head col == sCard (last stack)) = stack++col
     |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
