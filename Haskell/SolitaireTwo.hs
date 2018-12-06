@@ -39,7 +39,7 @@ module SolitaireTwo where
   findMoves board = filter (\n -> n/=([],[[]],[])) (resToColumns board++colToColumns board++kingToEmpty board) -- ++colToReserves board)
 
   hello::EOBoard
-  hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[],[],[],[],[],[]],[])
+  hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[],[],[],[],[]],[])
 
 ----------------------------------------------------------------------------------------------------
 
@@ -50,7 +50,8 @@ module SolitaireTwo where
   resToColumnsA board@(f,c,r) card
     |board==newBoard = ([],[[]],[])
     |otherwise = newBoard
-    where newC = (map (\col -> if (not(isKing card) && sCard card == head col) then card:col else col) c)
+    where newC = [(if (not(isKing card) && (not(null col)) && (sCard card == head col)) then card:col else col)|col<-c]
+        --  newC = (map (\col -> if (not(isKing card) && sCard card == head col) then card:col else col) c)
           cHeads = [head n|n<-newC, not(null n)]
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
@@ -87,6 +88,7 @@ module SolitaireTwo where
   colToReservesA::EOBoard->Card->EOBoard
   colToReservesA board@(f,c,r) card
     |board==newBoard = ([],[[]],[])
+    |null c = ([],[[]],[])
     |otherwise = newBoard
     where newBoard = (f,map (\col -> if (head col == card) then (tail col) else col) c,(card:r))
 
@@ -99,6 +101,7 @@ module SolitaireTwo where
   getStack::Deck->Deck->Deck
   getStack col@(h:t) stack
     |null col = stack
+    |null t = stack
     |null stack = getStack t [h]
     |(not(isAce h) && (last stack == pCard h)) = getStack t stack++[h]
     |otherwise = stack
@@ -108,8 +111,8 @@ module SolitaireTwo where
 
   getNewColumn::Deck->Deck->EOBoard->Deck
   getNewColumn _ [] _ = []
-  getNewColumn [] _ _ = []
   getNewColumn stack col board@(f,c,r)
+    |null stack = col
     |not(isKing (last stack)) && (head col == sCard (last stack)) = stack++col
     |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
