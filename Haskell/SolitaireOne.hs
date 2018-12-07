@@ -35,9 +35,6 @@ module SolitaireOne where
   pack::Deck
   pack = (createSuitDeck [] Hearts) ++ (createSuitDeck [] Diamonds) ++ (createSuitDeck [] Clubs) ++ (createSuitDeck [] Spades)
 
-  order::EOBoard
-  order = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
-
   --Creates all of the cards for one particular suit
   createSuitDeck::[Card] -> Suit -> Deck
   createSuitDeck deck suit

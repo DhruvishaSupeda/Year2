@@ -3,11 +3,12 @@ module SolitaireTwo where
   import System.Random
   import Data.List
   import Data.List.Split
-  import SolitaireOne
+  --import SolitaireOne
+  import Solitaire1PDG
   import Data.Maybe
 
 ----------------------------------------------------------------------------------------
-  shuffle::Int->Deck
+  {-shuffle::Int->Deck
   shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
 
   --Function to get list of random ints
@@ -16,30 +17,37 @@ module SolitaireTwo where
 
   --Splits the shuffled deck into a playable board
   eODeal::Int->EOBoard
-  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))
+  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))-}
 
 ----------------------------------------------------------------------------------------
 
-  --eOExpt::Int->Int
-  --eOExpt = (foldr (+) 0 (map (\seed -> (eOGame (eODeal seed) 0)) seeds))
-  --  where seeds = take 100 (randoms (mkStdGen 42)::[Int])
+  eOExpt::Float
+  eOExpt = (fromIntegral (foldr (+) 0 (map (\random -> eOGame (eODeal random)) random))) / 3
+    where random = take 3 (randoms (mkStdGen 42)::[Int])
 
-  eOGame::EOBoard->Int->Int
-  eOGame board score
+  eOGame::EOBoard->Int
+  eOGame board = eOGameA board 0
+
+  eOGameA::EOBoard->Int->Int
+  eOGameA board score
     |isNothing (chooseMove board) = score
-    |otherwise = eOGame (fromJust (chooseMove board)) (score+1)
+    |otherwise = eOGameA (fromJust (chooseMove board)) (score+1)
 
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board
-    |(findMoves board)==[] = Nothing
+    |(head (findMoves board))  = Nothing
     |otherwise = Just (head (findMoves board)) --choosing justhead means endlessloop if one move left
 
 
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board = filter (\n -> n/=([],[[]],[])) (resToColumns board++colToColumns board++kingToEmpty board) -- ++colToReserves board)
+  findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])] -- ++colToReserves board)
+    where newBoards = resToColumns board++colToColumns board++kingToEmpty board -- ++colToReserves board
 
   hello::EOBoard
   hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[],[],[],[]],[])
+
+  order::EOBoard
+  order = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
 
 ----------------------------------------------------------------------------------------------------
 
@@ -90,17 +98,17 @@ module SolitaireTwo where
     |board==newBoard = ([],[[]],[])
     |null c = ([],[[]],[])
     |otherwise = newBoard
-    where newBoard = (f,map (\col -> if (head col == card) then (tail col) else col) c,(card:r))
+    where newBoard = (f,map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c,(card:r))
 
 -----------------------------------------------------------------------------------------------------
 
   colToColumns::EOBoard->[EOBoard]
-  colToColumns board@(f,c,r) = [(f,(cNewC stack c board),r)|stack<-stacks, (f,(cNewC stack c board),r)/=board]
+  colToColumns board@(f,c,r) = [(f,(cNewC stack c board),r)|stack<-stacks, ((f,(cNewC stack c board),r)/=board)]
     where stacks = [getStack col []|col<-c]
 
   getStack::Deck->Deck->Deck
   getStack [] stack = stack
-  getStack (h:t) [] = getStack t [h]
+  getStack col@(h:t) [] = getStack t [h]
   getStack col@(h:t) stack
     |(not(isKing (last stack)) && ((sCard (last stack)) == h)) = getStack t (stack++[h])
     |otherwise = stack
@@ -111,14 +119,16 @@ module SolitaireTwo where
   getNewColumn::Deck->Deck->EOBoard->Deck
   getNewColumn _ [] _ = []
   getNewColumn [] col _ = col
-  getNewColumn stack col board@(f,c,r)
-    |not(isKing (last stack)) && (head col == sCard (last stack)) = stack++col
+  --getNewColumn _ col null = col
+  getNewColumn stack col@(hc:tc) board@(f,c,r)
+    |(not(isKing (last stack)) && (hc == sCard (last stack))) = stack++col
     |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
 
   canBeMoved::Columns->Deck->Bool
   canBeMoved _ [] = False
-  canBeMoved [] _ = False
-  canBeMoved columns@(h:t) stack
-    |not(isKing (last stack)) && (head h == sCard (last stack)) = True
-    |otherwise = canBeMoved t stack
+  canBeMoved ([]:_) _ = False
+  canBeMoved columns@((h:t):tc) stack
+    |null tc = False
+    |not(isKing (last stack)) && (h == sCard (last stack)) = True
+    |otherwise = canBeMoved tc stack
