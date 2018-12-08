@@ -20,7 +20,7 @@ module SolitaireTwo where
   eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))
 
 ----------------------------------------------------------------------------------------
-
+  --Plays 100 games, gives back average score and (not yet) no of games won
   eOExpt::Float
   eOExpt = (fromIntegral (foldr (+) 0 (map (\random -> eOGame (eODeal random)) random))) / 100
     where random = take 100 (randoms (mkStdGen 42)::[Int])
@@ -28,19 +28,41 @@ module SolitaireTwo where
   eOGame::EOBoard->Int
   eOGame board = eOGameA board 0
 
+  --Plays a game and returns a score
   eOGameA::EOBoard->Int->Int
   eOGameA board score
     |isNothing (chooseMove board) = score
-    |otherwise = eOGameA (fromJust (chooseMove board)) (score+1)
+    |otherwise = eOGameA (fromJust (chooseMove board)) (score+1) --score not correct
 
+  --Chooses a move out of list of EOBoards from findMoves
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board
-    |null (findMoves board)  = Nothing
-    |otherwise = Just (head (findMoves board)) --choosing justhead means endlessloop if one move left
+    |null newBoards  = Nothing
+  --  |not (null kingAtHead) = head kingAtHead
+    |[if (checkForKing board) && (emptyCols c) then board else []|board@(f,c,r)<-newBoards]
+    |otherwise = Just (last newBoards) --choosing justhead means endlessloop if one move leftr
+    where newBoards = findMoves board
+      --    kingAtHead = filter(\board -> checkColsForKing board) newBoards CHECK RESERVES AND COLUMNS
+          emptyCols board@(f,c,r) = filter (\col -> col==[]) c
 
+  recChooseMove::EOBoard->Int->Bool
+  recChooseMove board counter
+    |
+
+  recChooseMoveA::EOBoard->Int->
+
+  checkForKing::EOBoard->Bool
+  checkForKing board@(f,c,r)
+    |filter (\res -> isKing res) r /= [] = True
+    |filter (\col -> isKing col) cHeads /= [] = True
+    |Otherwise = False
+
+  --Finds possible moves using all functions
+  --Function that if king exposed, and theres an empty column, choose that move
+  --Function that if move is made then toFoundations on new board is different,  use taht move LIST COMPS?
   findMoves :: EOBoard -> [EOBoard]
   findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])]
-    where newBoards = resToColumns board++colToColumns board++kingToEmpty board -- ++colToReserves board
+    where newBoards = resToColumns board++colToColumns board++kingToEmpty board ++ colToReserves board
 
   getLengths :: [EOBoard] -> [(EOBoard,Int)]
   getLengths boards = zip boards weights
@@ -137,6 +159,7 @@ module SolitaireTwo where
   canBeMoved _ [] = False
   canBeMoved ([]:_) _ = False
   canBeMoved columns@((h:t):tc) stack
-    |null tc = False
+  --  |null (h:t) = False
+  --  |null tc = False
     |not(isKing (last stack)) && (h == sCard (last stack)) = True
     |otherwise = canBeMoved tc stack
