@@ -3,12 +3,12 @@ module SolitaireTwo where
   import System.Random
   import Data.List
   import Data.List.Split
-  --import SolitaireOne
-  import Solitaire1PDG
+  import SolitaireOne
+  --import Solitaire1PDG
   import Data.Maybe
 
 ----------------------------------------------------------------------------------------
-  {-shuffle::Int->Deck
+  shuffle::Int->Deck
   shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
 
   --Function to get list of random ints
@@ -17,13 +17,13 @@ module SolitaireTwo where
 
   --Splits the shuffled deck into a playable board
   eODeal::Int->EOBoard
-  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))-}
+  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))
 
 ----------------------------------------------------------------------------------------
 
   eOExpt::Float
-  eOExpt = (fromIntegral (foldr (+) 0 (map (\random -> eOGame (eODeal random)) random))) / 3
-    where random = take 3 (randoms (mkStdGen 42)::[Int])
+  eOExpt = (fromIntegral (foldr (+) 0 (map (\random -> eOGame (eODeal random)) random))) / 100
+    where random = take 100 (randoms (mkStdGen 42)::[Int])
 
   eOGame::EOBoard->Int
   eOGame board = eOGameA board 0
@@ -35,19 +35,27 @@ module SolitaireTwo where
 
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board
-    |(head (findMoves board))  = Nothing
+    |null (findMoves board)  = Nothing
     |otherwise = Just (head (findMoves board)) --choosing justhead means endlessloop if one move left
 
-
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])] -- ++colToReserves board)
+  findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])]
     where newBoards = resToColumns board++colToColumns board++kingToEmpty board -- ++colToReserves board
+
+  getLengths :: [EOBoard] -> [(EOBoard,Int)]
+  getLengths boards = zip boards weights
+    where weights = [cValues + length r|board@(f,c,r)<-boards]
+          columns = [ c|board@(f,c,r)<-boards]
+          cValues = foldr (+) 0 [length col|col<-columns]
 
   hello::EOBoard
   hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[],[],[],[]],[])
 
   order::EOBoard
   order = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
+
+  won::EOBoard
+  won = ([(King,Spades),(King,Clubs),(King,Diamonds),(King,Hearts)],[[],[],[],[],[],[],[],[]],[])
 
 ----------------------------------------------------------------------------------------------------
 

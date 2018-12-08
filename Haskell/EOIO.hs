@@ -9,7 +9,7 @@ play a game, displaying successive moves -}
 
  -- import your solitaire code here
 
- import Solitaire1PDG
+ import SolitaireOne
  import SolitaireTwo
  import Data.Maybe
 
@@ -90,7 +90,7 @@ play a game, displaying successive moves -}
 
  displayEOGame b = do
   let (fnds,cols,res) = b -- apparently can't do this with @
-  if ((null cols)&&(null res)) -- if cols & reserve empty its a win
+  if ((null (filter (\col -> not(null col))cols))&&(null res)) -- if cols & reserve empty its a win
      then do
        displayEOB b     --null (filter (\col -> not(null col))cols)
        return "A WIN"
