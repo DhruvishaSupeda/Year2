@@ -7,6 +7,8 @@ module SolitaireTwo where
   --import Solitaire1PDG
   import Data.Maybe
 
+  --if one move in findMoves, stop? or if it is colToReserves and the card tomove has sCard in same column?
+
 ----------------------------------------------------------------------------------------
   shuffle::Int->Deck
   shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
@@ -38,11 +40,14 @@ module SolitaireTwo where
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board@(f,c,r)
     |null newBoards  = Nothing
+
     --SCORE THEM ALL, THEN USE HIGHEST SCORE INSTEAD OF HEAD
   --  |not (null kingAtHead) = head kingAtHead
     |checkKingBoards /= [] = Just (head (checkKingBoards))
     --if toFoundations onnewBoard is different, use that one
-    |diffToF /= [] == Just (head diffToF)
+    |diffToF /= [] = Just (head diffToF)
+    --if need to do col to reserve,find res to col next go - infinite loop maybe?
+    -- |[if (length nr>r)|board@(nf,nc,nr) <- newBoards] --god knows
     |otherwise = Just (last newBoards) --choosing justhead means endlessloop if one move leftr
     where newBoards = findMoves board
       --    kingAtHead = filter(\board -> checkColsForKing board) newBoards CHECK RESERVES AND COLUMNS
