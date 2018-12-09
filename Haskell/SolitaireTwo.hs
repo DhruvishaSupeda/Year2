@@ -36,26 +36,33 @@ module SolitaireTwo where
 
   --Chooses a move out of list of EOBoards from findMoves
   chooseMove :: EOBoard -> Maybe EOBoard
-  chooseMove board
+  chooseMove board@(f,c,r)
     |null newBoards  = Nothing
+    --SCORE THEM ALL, THEN USE HIGHEST SCORE INSTEAD OF HEAD
   --  |not (null kingAtHead) = head kingAtHead
-    |[if (checkForKing board) && (emptyCols c) then board else []|board@(f,c,r)<-newBoards]
+    |checkKingBoards /= [] = Just (head (checkKingBoards))
+    --if toFoundations onnewBoard is different, use that one
+    |diffToF /= [] == Just (head diffToF)
     |otherwise = Just (last newBoards) --choosing justhead means endlessloop if one move leftr
     where newBoards = findMoves board
       --    kingAtHead = filter(\board -> checkColsForKing board) newBoards CHECK RESERVES AND COLUMNS
-          emptyCols board@(f,c,r) = filter (\col -> col==[]) c
+          emptyCols c = filter (\col -> col==[]) c
+          checkKingBoards = (filter (\b -> b /= ([],[[]],[])) [if ((checkForKing board == True) && not(null(emptyCols c))) then board else ([],[[]],[])|board@(f,c,r)<-newBoards])
+          diffToF = (filter (\b -> toFoundations b /= b) newBoards)
 
-  recChooseMove::EOBoard->Int->Bool
-  recChooseMove board counter
-    |
+--  recChooseMove::EOBoard->Int->Bool
+--  recChooseMove board counter
+  --  |
 
-  recChooseMoveA::EOBoard->Int->
+--  recChooseMoveA::EOBoard->Int->
 
   checkForKing::EOBoard->Bool
   checkForKing board@(f,c,r)
     |filter (\res -> isKing res) r /= [] = True
     |filter (\col -> isKing col) cHeads /= [] = True
-    |Otherwise = False
+    |otherwise = False
+    where cHeads = [head n|n<-c, not(null n)]
+
 
   --Finds possible moves using all functions
   --Function that if king exposed, and theres an empty column, choose that move
@@ -159,7 +166,7 @@ module SolitaireTwo where
   canBeMoved _ [] = False
   canBeMoved ([]:_) _ = False
   canBeMoved columns@((h:t):tc) stack
-  --  |null (h:t) = False
-  --  |null tc = False
+    |null (h:t) = False
+    |null tc = False
     |not(isKing (last stack)) && (h == sCard (last stack)) = True
     |otherwise = canBeMoved tc stack
