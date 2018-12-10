@@ -58,7 +58,7 @@ module SolitaireOne where
   eODeal::Int->EOBoard
   eODeal seed = ([], chunksOf 6 (drop 4 shuffle seed), (take 4 shuffle seed))-}
 
-  --Main toFoundations function
+{-  --Main toFoundations function
   toFoundations::EOBoard -> EOBoard
   toFoundations initialBoard
     --If no new moves have been made, return the board
@@ -103,4 +103,22 @@ module SolitaireOne where
     --If only the head remains, and the head is not in foundations, return the head
     |((length (h:t) == 1) && (not(elem h f))) = init (h:t)
     --Otherwise, return entire list
-    |otherwise = (h:t)
+    |otherwise = (h:t) -}
+
+{-Automatically moves available cards onto foundations
+  Calculate foundations for a move first, then remove duplicate cards-}
+  toFoundations :: EOBoard -> EOBoard
+  toFoundations b@(f,c,r)
+    --If reserves unchanged, return board
+    | f == resf = b
+    | otherwise = toFoundations (resf,newc,newr)
+    --getFoundations function, add aces onto foundations and replace elements in foundations if successor is in lis
+    where getFoundations f lis = (filter isAce lis) ++ (map(\crd -> if (elem (sCard crd) lis) then sCard crd else crd) (filter (\x -> not (isKing x)) f)) ++ (filter (\x -> (isKing x)) f)
+          --Get foundations after moving columns, given heads, of columns that are not null
+          colf = getFoundations f [head crd | crd <- c, not (null crd)]
+          --Calculate columnsReturn only tail of column if head appears in colf, filter for columns that are not null
+          newc = map (\col@(h:t) -> if (elem h colf) then t else col) (filter(\col -> not (null col)) c)
+          --Calculate foundations after moving reserves onto foundations
+          resf = getFoundations colf r
+          --Calculate new reserves by removing elements from reserves that also appear in resf
+          newr = filter (\crd -> not(elem crd resf)) r

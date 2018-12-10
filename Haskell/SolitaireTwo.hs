@@ -4,7 +4,7 @@ module SolitaireTwo where
   import Data.List
   import Data.List.Split
   import SolitaireOne
-  --import Solitaire1PDG
+--  import Solitaire1PDG
   import Data.Maybe
 
   --if one move in findMoves, stop? or if it is colToReserves and the card tomove has sCard in same column?
@@ -43,12 +43,12 @@ module SolitaireTwo where
 
     --SCORE THEM ALL, THEN USE HIGHEST SCORE INSTEAD OF HEAD
   --  |not (null kingAtHead) = head kingAtHead
-    |(filter (\b -> b /= ([],[[]],[])) (kingToEmpty board)) /= [] = Just (head (kingToEmpty board))
+    |(filter (\b -> (b /= ([],[[]],[])) && (b /= board)) (kingToEmpty board)) /= [] = Just (head (kingToEmpty board))
     --if toFoundations onnewBoard is different, use that one
 --    |diffToF /= [] = Just (head diffToF)
     --if need to do col to reserve,find res to col next go - infinite loop maybe?
     -- |[if (length nr>r)|board@(nf,nc,nr) <- newBoards] --god knows
-    |otherwise = Just (head newBoards) --choosing justhead means endlessloop if one move leftr
+    |otherwise = Just (head (filter (\b -> b /= ([],[[]],[]) || (b /= board)) (findMoves board))) --choosing justhead means endlessloop if one move leftr
     where newBoards = findMoves board
       --    kingAtHead = filter(\board -> checkColsForKing board) newBoards CHECK RESERVES AND COLUMNS
           diffToF = (filter (\b -> (toFoundations b) /= b) newBoards)
@@ -56,6 +56,9 @@ module SolitaireTwo where
   diff::EOBoard->[EOBoard]
   diff board = (filter (\b -> (toFoundations b) /= b) newBoards)
     where newBoards = findMoves board
+
+  boardsNotEqual::EOBoard->EOBoard->Bool
+  boardsNotEqual board1@(f1,c1,r1) board2@(f2,c2,r2) = (f1/=f2) || (c1/=c2) || (r1/=r2)
 
   checkForKing::EOBoard->Bool
   checkForKing board@(f,c,r)
@@ -69,8 +72,10 @@ module SolitaireTwo where
   --Function that if king exposed, and theres an empty column, choose that move
   --Function that if move is made then toFoundations on new board is different,  use taht move LIST COMPS?
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])]
-    where newBoards = resToColumns board++colToColumns board++kingToEmpty board ++ stackToReserves board
+--  findMoves board = [toFoundations board|board<-newBoards, board/=([],[[]],[])]
+  findMoves board@(f,c,r) = filter (boardsNotEqual toFBoard) (filter (\b -> b/=([],[[]],[])) newBoards)
+    where newBoards = resToColumns toFBoard++kingToEmpty toFBoard ++colToColumns toFBoard ++stackToReserves toFBoard
+          toFBoard = toFoundations (board)
 
   getLengths :: [EOBoard] -> [(EOBoard,Int)]
   getLengths boards = zip boards weights
@@ -82,7 +87,7 @@ module SolitaireTwo where
   hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[],[],[],[]],[])
 
   bye::EOBoard
-  bye = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[(King,Spades)],[],[],[]],[])
+  bye = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[(King,Spades)],[],[],[]],[(Queen,Spades)])
 
   order::EOBoard
   order = ([], chunksOf 6 (drop 4 pack), (take 4 pack))
@@ -100,7 +105,7 @@ module SolitaireTwo where
   resToColumnsA::EOBoard->Card->EOBoard
   resToColumnsA board@(f,c,r) card
     |board==newBoard = ([],[[]],[])
-    |repeatedBoard board newBoard == True = ([],[[]],[])
+    -- |repeatedBoard board newBoard == True = ([],[[]],[])
     |otherwise = newBoard
     where newC = [(if (not(isKing card) && (not(null col)) && (sCard card == head col)) then card:col else col)|col<-c]
         --  newC = (map (\col -> if (not(isKing card) && sCard card == head col) then card:col else col) c)
@@ -108,14 +113,19 @@ module SolitaireTwo where
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
 
   repeatedBoard::EOBoard->EOBoard->Bool
-  repeatedBoard old new = if ((filter (\b -> b==old) (stackToReserves new)) /= []) then True else False
+  repeatedBoard old new
+  --  |((filter (\b -> b==old) (stackToReserves new)) /= []) = True
+  --  |[if b==old then b else ([],[[]],[])|b<-findMoves new, b/=([],[[]],[])]
+    |((filter (\b -> b==old) (findMoves new)) /= []) = True
+    |otherwise = False
+    where newBoards = stackToReserves new
 
 ------------------------------------------------------------------------------------------------------
 
   kingToEmpty::EOBoard->[EOBoard]
   kingToEmpty board@(f,c,r)
     |filter (\n -> null n) c == [] = [([],[[]],[])] --check if there is an empty column
-    |otherwise = resToEmpty board ++ colToEmpty board
+    |otherwise = filter (\b -> b/=board) (resToEmpty board ++ colToEmpty board)
 
   resToEmpty::EOBoard->[EOBoard]
   resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards,r/=[]]
@@ -135,7 +145,7 @@ module SolitaireTwo where
 
 ------------------------------------------------------------------------------------------------------
 
-  {-colToReserves::EOBoard->[EOBoard]
+  colToReserves::EOBoard->[EOBoard]
   colToReserves board@(f,c,r)
     |length r >= 8 = [([],[[]],[])]
     |otherwise = [colToReservesA board (head col)|col<-c, not(null col)]
@@ -145,7 +155,7 @@ module SolitaireTwo where
     |board==newBoard = ([],[[]],[])
     |null c = ([],[[]],[])
     |otherwise = newBoard
-    where newBoard = (f,map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c,(card:r)) -}
+    where newBoard = (f,map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c,(card:r))
 
 -----------------------------------------------------------------------------------------------------
 
@@ -195,9 +205,10 @@ module SolitaireTwo where
   getNewColumn::Deck->Deck->EOBoard->Deck
   getNewColumn _ [] _ = []
   getNewColumn [] col _ = col
-  --getNewColumn _ col null = col
   getNewColumn stack col@(hc:tc) board@(f,c,r)
     |(not(isKing (last stack)) && (hc == sCard (last stack))) = stack++col
+--    |(length col==2) && (length stack==1) && (canBeMoved c stack) = tail col
+    |(length col==1) && not(canBeMoved c stack) = col
     |(isInfixOf stack col) && (canBeMoved c stack) = col \\ stack
     |otherwise = col
 
@@ -206,6 +217,6 @@ module SolitaireTwo where
   canBeMoved ([]:_) _ = False
   canBeMoved columns@((h:t):tc) stack
     |null columns = False
-    |null tc && not (null (h:t)) = if (not(isKing (last stack)) && (h == sCard (last stack))) then True else False
+    |null tc = if (not(isKing (last stack)) && (h == sCard (last stack))) then True else False
     |not(isKing (last stack)) && (h == sCard (last stack)) = True
     |otherwise = canBeMoved tc stack
