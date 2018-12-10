@@ -117,7 +117,7 @@ module SolitaireOne where
           --Get foundations after moving columns, given heads, of columns that are not null
           colf = getFoundations f [head crd | crd <- c, not (null crd)]
           --Calculate columnsReturn only tail of column if head appears in colf, filter for columns that are not null
-          newc = map (\col@(h:t) -> if (elem h colf) then t else col) (filter(\col -> not (null col)) c)
+          newc = map (\col@(h:t) -> if (elem h colf) then t else col) (filter(\col -> not (null col)) c) ++ (filter(\col -> (null col)) c)
           --Calculate foundations after moving reserves onto foundations
           resf = getFoundations colf r
           --Calculate new reserves by removing elements from reserves that also appear in resf

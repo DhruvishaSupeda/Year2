@@ -23,50 +23,52 @@ module SolitaireTwo where
 
 ----------------------------------------------------------------------------------------
   --Plays 100 games, gives back average score and (not yet) no of games won
-  eOExpt::Float
-  eOExpt = (fromIntegral (foldr (+) 0 (map (\random -> eOGame (eODeal random)) random))) / 3
-    where random = take 3 (randoms (mkStdGen 42)::[Int])
-
-  eOGame::EOBoard->Int
-  eOGame board = eOGameA board 0
+  eOExpt::(Int,Float)
+  eOExpt = ((length (filter (\s -> s==52) scores)),((fromIntegral (foldr (+) 0 scores) / 5)))
+    where random = take 5 (randoms (mkStdGen 42)::[Int])
+          scores = (map (\random -> eOGame (eODeal random)) random)
 
   --Plays a game and returns a score
-  eOGameA::EOBoard->Int->Int
-  eOGameA board score
-    |isNothing (chooseMove board) = score
-    |otherwise = eOGameA (fromJust (chooseMove board)) (score+1) --score not correct
+  eOGame::EOBoard->Int
+  eOGame board@(f,c,r)
+    |isNothing (chooseMove board) = (52- (length r) - (foldr (+) 0 (map length c)))
+    |otherwise = eOGame (fromJust (chooseMove board)) --score not correct
 
   --Chooses a move out of list of EOBoards from findMoves
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board@(f,c,r)
-    |null newBoards  = Nothing
-
-    --SCORE THEM ALL, THEN USE HIGHEST SCORE INSTEAD OF HEAD
-  --  |not (null kingAtHead) = head kingAtHead
+    |null newBoards = Nothing
+    --Moves a king if it can
     |(filter (\b -> (b /= ([],[[]],[])) && (b /= board)) (kingToEmpty board)) /= [] = Just (head (kingToEmpty board))
+
+    |(not (isNothing (cardSecond board c))) && (secondCardsList /= []) = Just (head secondCardsList)
     --if toFoundations onnewBoard is different, use that one
---    |diffToF /= [] = Just (head diffToF)
+    |diffToF /= [] = Just (head diffToF)
     --if need to do col to reserve,find res to col next go - infinite loop maybe?
     -- |[if (length nr>r)|board@(nf,nc,nr) <- newBoards] --god knows
-    |otherwise = Just (head (filter (\b -> b /= ([],[[]],[]) || (b /= board)) (findMoves board))) --choosing justhead means endlessloop if one move leftr
-    where newBoards = findMoves board
-      --    kingAtHead = filter(\board -> checkColsForKing board) newBoards CHECK RESERVES AND COLUMNS
-          diffToF = (filter (\b -> (toFoundations b) /= b) newBoards)
+    |(filter (\b -> (b /= ([],[[]],[])) && (b /= board)) (resToColumns board)) /= [] = Just (head (resToColumns board))
+    |otherwise = Just (last newBoards) --choosing justhead means endlessloop if one move leftr
+    where newBoards = (filter (\b -> (b /= ([],[[]],[]) || boardsNotEqual b board)) (findMoves board))
+          diffToF = (filter (\b -> (boardsNotEqual (toFoundations b) b)) newBoards)
+          index = cardSecond board c
+          secondCardsList = (filter (\b@(nf,nc,nr) -> (length (nc!!fromJust(index))) < (length (c!!fromJust(index)))) newBoards)
 
-  diff::EOBoard->[EOBoard]
-  diff board = (filter (\b -> (toFoundations b) /= b) newBoards)
-    where newBoards = findMoves board
+  chooseMoveStupid::EOBoard->Maybe EOBoard
+  chooseMoveStupid board
+    |
 
   boardsNotEqual::EOBoard->EOBoard->Bool
   boardsNotEqual board1@(f1,c1,r1) board2@(f2,c2,r2) = (f1/=f2) || (c1/=c2) || (r1/=r2)
 
-  checkForKing::EOBoard->Bool
-  checkForKing board@(f,c,r)
-    |filter (\res -> isKing res) r /= [] = True
-    |filter (\col -> isKing col) cHeads /= [] = True
-    |otherwise = False
-    where cHeads = [head n|n<-c, not(null n)]
+  cardSecond::EOBoard -> Columns -> Maybe Int
+  cardSecond _ [] = Nothing
+  cardSecond board@(f,c,r) columns@(h:t)
+    |(isJust(card h)) && isKing(fromJust (card h)) = (elemIndex h c)
+    |(isJust(card h)) && ((filter (\found -> pCard (fromJust (card h)) == found) f) /= []) = (elemIndex h c)
+    |otherwise = cardSecond board t
+    where card col = if (length col >= 2) then (Just (col!!1)) else Nothing
 
+  --for each col to res, or col to col, if it exposes a king
 
   --Finds possible moves using all functions
   --Function that if king exposed, and theres an empty column, choose that move
@@ -105,7 +107,7 @@ module SolitaireTwo where
   resToColumnsA::EOBoard->Card->EOBoard
   resToColumnsA board@(f,c,r) card
     |board==newBoard = ([],[[]],[])
-    -- |repeatedBoard board newBoard == True = ([],[[]],[])
+  --  |repeatedBoard board newBoard == True = ([],[[]],[])
     |otherwise = newBoard
     where newC = [(if (not(isKing card) && (not(null col)) && (sCard card == head col)) then card:col else col)|col<-c]
         --  newC = (map (\col -> if (not(isKing card) && sCard card == head col) then card:col else col) c)
@@ -124,16 +126,18 @@ module SolitaireTwo where
 
   kingToEmpty::EOBoard->[EOBoard]
   kingToEmpty board@(f,c,r)
-    |filter (\n -> null n) c == [] = [([],[[]],[])] --check if there is an empty column
+    |(filter (\n -> null n) c == []) = [([],[[]],[])] --check if there is an empty column
+  --  |(length c == 8) = [([],[[]],[])]
     |otherwise = filter (\b -> b/=board) (resToEmpty board ++ colToEmpty board)
 
   resToEmpty::EOBoard->[EOBoard]
   resToEmpty board@(f,c,r) = [(f,kingNewC c card,newR card)|card<-kingCards,r/=[]]
-    where kingCards = filter (\res -> isKing res) r
-          newR card = filter (\res -> res /= card) r
+    where kingCards = filter isKing r
+          newR card = filter (/= card) r
 
   kingNewC::Columns->Card->Columns
-  kingNewC columns@(hc:tc) king
+  kingNewC [] _ = []
+  kingNewC columns@(hc:tc) king  -- = [king]:columns
     |null hc = (king:hc):tc
     |otherwise = hc:kingNewC tc king
 
