@@ -5,10 +5,11 @@ module SolitaireTwo where
   import Data.List.Split
   import Debug.Trace
   import SolitaireOne
---  import Solitaire1PDG
   import Data.Maybe
+  import MeanStats
 
 ----------------------------------------------------------------------------------------
+  --Edit from my SolitaireOne:
   shuffle::Int->Deck
   shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
 
@@ -23,60 +24,42 @@ module SolitaireTwo where
 ----------------------------------------------------------------------------------------
   --Plays 100 games, gives back average score and no of games won
   eOExpt::Int->(Int,Float)
-  eOExpt number= ((length (filter (\s -> s==52) scores)),((fromIntegral (foldr (+) 0 scores) / fromIntegral(number))))
-    where random = take number (randoms (mkStdGen 1)::[Int])
+  eOExpt number= ((length (filter (\s -> s==52) scores)),((fromIntegral (foldr (+) 0 scores) / fromIntegral(100))))
+    where random = take 100 (randoms (mkStdGen number)::[Int]) --80=5, 3=4
           scores = (map (\random -> eOGame (eODeal random)) random)
-
-  randomm::[Int]
-  randomm = take 29 (randoms (mkStdGen 1)::[Int])
 
   --Plays a game and returns a score, which is how many cards have been moved to foundations
   eOGame::EOBoard->Int
   eOGame board@(f,c,r)
+    --If no more possible moves, returns the score and ends the games
     |isNothing (chooseMove board) = (52- (length r) - (foldr (+) 0 (map length c)))
+    --If there is a possible move, recurses and plays that move
     |otherwise = eOGame (fromJust (chooseMove board)) --score not correct
 
   --Chooses a move out of list of EOBoards from findMoves
   chooseMove :: EOBoard -> Maybe EOBoard
   chooseMove board@(f,c,r)
     |null newBoards = Nothing
+    --If toFoundations can be called on the board again, return that new board
     |boardsNotEqual board (toFoundations board) = Just (toFoundations board)
-    --Makes sure not just moving king into column and reserves and back
-    |(length newBoards == 1) && (not (null (kingToEmpty (head newBoards)))) = Nothing
+    --If there is a card as the second item in any of the columns that can be moved, make and choose that move
     |(isJust (cardSecond board c)) && (secondCardsList /= []) = Just (head secondCardsList)
+    --Hierarchical approach to choose what type of move should be made next
     |(not (null kToE)) = Just (head kToE)
     |(not (null rToC)) = Just (head rToC)
     |(not (null cToC)) = Just (head cToC)
-    --if toFoundations onnewBoard is different, use that one
-
---if king in reserves, an empty column, and none of cHeads or reserves are pCard to it, stop - use displayEOGame (eODeal 4543636) LAST FILTER DOESN'T WORK
-    --if need to do col to reserve,find res to col next go - infinite loop maybe?
-    |(not (null (cToR)))= Just (head cToR)
-    |otherwise = Nothing --choosing justhead means endlessloop if one move left
+    |(not (null sToR))= Just (head sToR)
+    --If no other possible moves, return Nothing
+    |otherwise = Nothing
     where newBoards = (findMoves board)
-          weightedBoards = map fst (sortBy (\(_,x) (_,y) -> compare x y) (map addWeights newBoards))
           index = cardSecond board c
+          --For each move, finds the move that reduces the column length (i.e. takes head of column off) at the index given and returns those moves
           secondCardsList = if isJust index then (filter (\b@(nf,nc,nr) -> isJust index && ((length (nc!!fromJust(index))) < (length (c!!fromJust(index))))) newBoards) else []
           cHeads = [head n|n<-c, not(null n) && not(isKing (head n))]
           kToE = filter (boardsNotEqual board) (kingToEmpty board)
           rToC = filter (boardsNotEqual board) (resToColumns board)
           cToC = filter (boardsNotEqual board) (colToColumns board)
-          cToR = filter (boardsNotEqual board) (stackToReserves board)
-
-  --Adds weights to the moves in the list by adding together the lengths of the columns and reserves
-  addWeights::EOBoard->(EOBoard,Int)
-  addWeights board@(f,c,r) = (board, ((length r) + (foldr (+) 0 [length col|col<-c])))
---  ((length r) + (foldr (+) 0 [length col|col<-c]))
-
-  --Finds the value of the pips of each card in the foundations, and adds them together
-  values :: Deck -> Int
-  values f = foldr (+) 0 [valuesA pip Ace 1|found@(pip,suit)<-f]
-
-  valuesA :: Pip -> Pip -> Int -> Int
-  valuesA King _ _ = 13
-  valuesA pip counterPip counter
-      | pip == counterPip = counter
-      | otherwise = valuesA pip (succ pip) (counter+1)
+          sToR = filter (boardsNotEqual board) (stackToReserves board)
 
   --Returns a boolean of whether two boards are equal (false) or not (true)
   boardsNotEqual::EOBoard->EOBoard->Bool
@@ -86,18 +69,18 @@ module SolitaireTwo where
   cardSecond::EOBoard -> Columns -> Maybe Int
   cardSecond _ [] = Nothing
   cardSecond board@(f,c,r) columns@(h:t)
+    --If it is a king, it could be moved to an empty column, so return the index of that column
     |(isJust(card h)) && isKing(fromJust (card h)) = (elemIndex h c)
+    --If the second card is an ace or is the successor of a card in foundations, return the index of that column
     |(isJust (card h)) && (((elem (fromJust (card h)) sFound)) || isAce(fromJust(card h)))  = (elemIndex h c) --ACES
     |otherwise = cardSecond board t
     where card col = if (length col >= 2) then (Just (col!!1)) else Nothing
           sFound = [sCard found|found<-f, not(isKing found)]
 
-  --Finds possible moves using all functions
+  --Finds all possible moves using all functions to get moves
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board@(f,c,r) = map toFoundations newBoards--[toFoundations n|n<-newBoards,boardsNotEqual n bpard]
-  --findMoves board@(f,c,r) = filter (\b -> boardsNotEqual toFBoard b) newBoards
+  findMoves board@(f,c,r) = map toFoundations newBoards
     where newBoards = (kingToEmpty board) ++ (resToColumns board)++(colToColumns board) ++(stackToReserves board)
-        --  toFBoard = toFoundations (board)
 
   hello::EOBoard
   hello = ([],[[(Two,Spades),(Three,Spades)],[(Four,Spades)],[(Five,Spades)],[(Ace,Diamonds)],[],[],[],[]],[])
@@ -114,6 +97,14 @@ module SolitaireTwo where
   ordered :: EOBoard
   ordered = ([],chunksOf 13 pack,[])
 
+  --Takes a column and returns the stack, which is a list of consecutive cards, or if there aren't any consecutive, just the head
+  getStack::Deck->Deck->Deck
+  getStack [] stack = stack
+  getStack col@(h:t) [] = getStack t [h]
+  getStack col@(h:t) stack
+    |(not(isKing (last stack)) && ((sCard (last stack)) == h)) = getStack t (stack++[h])
+    |otherwise = stack
+
 ----------------------------------------------------------------------------------------------------
   --Returns all possible moves of moving a card in reserves to a column
   resToColumns::EOBoard->[EOBoard]
@@ -122,22 +113,14 @@ module SolitaireTwo where
   --Aux function for resToColumns
   resToColumnsA::EOBoard->Card->EOBoard
   resToColumnsA board@(f,c,r) card
-    --If no changes to the board, returns original board
+    --If no changes to the board, returns original board, otherwise returns new board
     |board==newBoard = board
     |otherwise = newBoard
-          --works out new columns by checking is reserve card is the predecessor of the head of the column, and adding accordingly
+          --Works out new columns by checking is reserve card is the predecessor of the head of the column, and adding accordingly
     where newC = [(if (not(isKing card) && (not(null col)) && (sCard card == head col)) then card:col else col)|col<-c]
           cHeads = [head n|n<-newC, not(null n)]
           --The new board with the new columns and new reserves
           newBoard = (f,newC,(filter (\res -> (not(elem res cHeads))) r))
-
-{-  repeatedBoard::EOBoard->EOBoard->Bool
-  repeatedBoard old new
-  --  |((filter (\b -> b==old) (stackToReserves new)) /= []) = True
-  --  |[if b==old then b else ([],[[]],[])|b<-findMoves new, b/=([],[[]],[])]
-    |((filter (\b -> b==old) (findMoves new)) /= []) = True
-    |otherwise = False
-    where newBoards = stackToReserves new -}
 
 ------------------------------------------------------------------------------------------------------
 
@@ -158,7 +141,7 @@ module SolitaireTwo where
   --Gets new columns after moving a king
   kingNewC::Columns->Card->Columns
   kingNewC [] _ = []
-  kingNewC columns@(hc:tc) king  -- = [king]:columns
+  kingNewC columns@(hc:tc) king
     |null hc = (king:hc):tc
     |otherwise = hc:kingNewC tc king
 
@@ -169,55 +152,37 @@ module SolitaireTwo where
           kingCards = filter (\card -> isKing card) cHeads
           newC card = map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c
 
-------------------------------------------------------------------------------------------------------
-
-  --Moves the heads of columns to reserves if it is possible, and returns those moves
-  colToReserves::EOBoard->[EOBoard]
-  colToReserves board@(f,c,r)
-    --If reserves are too large, does not return any new moves
-    |length r >= 8 = [board]
-    |otherwise = [colToReservesA board (head col)|col<-c, not(null col)]
-
-  --Aux function for colToReserves
-  colToReservesA::EOBoard->Card->EOBoard
-  colToReservesA board@(f,c,r) card
-    --If there is no change, return the original board
-    |board==newBoard = board
-    --If no columns, returns the original board
-    |null c = board
-    --For each column, returns a board with the head moved to reserves, then deletes that card from the head
-    |otherwise = newBoard
-    where newBoard = (f,map (\col -> if (not(null col)&&(head col == card)) then (tail col) else col) c,(card:r))
-
------------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------------------
 
   --Moves a stack to reserves if possible
   stackToReserves::EOBoard->[EOBoard]
   stackToReserves board@(f,c,r)
-    -- |(kingToEmpty board) && (kingToEmpty board) /= [] = [([],[[]],[])]
+    --If the reserves are too big to move any cards, return original board
     |length r >= 8 = [board]
-    |otherwise = [(f,makeNewColumns c stack r,newReserves stack r)|stack<-stacks, length (stack) > 1, (not (isKing (last stack)))] ++ [(f,makeNewColumns c stack r,newReserves stack r)|stack<-stacks, length (stack) ==1, not(isKing (head stack))]
+    --Returns a list of boards for moving each stack for each column to the reserves
+    |otherwise = [(f,makeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) > 1, (not (isKing (last stack)))] ++
+      [(f,makeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) ==1, not(isKing (head stack))]
+    --List of stacks from each column
     where stacks = [getStack col []|col<-c, not(null col)]
 
+  --Remakes all of the columns in the board, removing the stack
   makeNewColumns::Columns->Deck->Deck->Columns
-  makeNewColumns columns stack r = [newCol stack col r|col<-columns]
+  makeNewColumns columns stack r = [strNewCol stack col r|col<-columns]
 
-  newCol::Deck->Deck->Deck->Deck
-  newCol _ [] _ = []
-  newCol [] col _ = col
-  newCol stack@(h:t) col r
-    |(isInfixOf [h] col) && ((length r) <= 8) = newCol t (col\\([h])) (r++[h])
+  --Makes a new column given the original column, the stack (as much as it can fit) and the reserves (for tail recursion)
+  strNewCol::Deck->Deck->Deck->Deck
+  strNewCol _ [] _ = []
+  strNewCol [] col _ = col
+  strNewCol stack@(h:t) col r
+    |(isInfixOf [h] col) && ((length r) <= 8) = strNewCol t (col\\([h])) (r++[h])
     |otherwise = col
 
-  newReserves::Deck->Deck->Deck
-  newReserves [] r = r
-  newReserves stack@(h:t) reserves
-    |length reserves < 8 = newReserves t (reserves++([h]))
+  --Makes the new reserves with as much of the stack as it can put in
+  strNewReserves::Deck->Deck->Deck
+  strNewReserves [] r = r
+  strNewReserves stack@(h:t) reserves
+    |length reserves < 8 = strNewReserves t (reserves++([h]))
     |otherwise = reserves
-
-  --go through columns, get stack for column
-  --go through stack, add head of stack to r if r < 8, then recurse with tail of stack
-  --if >8,
 
 -----------------------------------------------------------------------------------------------------
 
@@ -226,27 +191,22 @@ module SolitaireTwo where
   colToColumns board@(f,c,r) = [(f,(cNewC stack c board),r)|stack<-stacks, ((f,(cNewC stack c board),r)/=board)]
     where stacks = [getStack col []|col<-c]
 
-  getStack::Deck->Deck->Deck
-  getStack [] stack = stack
-  getStack col@(h:t) [] = getStack t [h]
-  getStack col@(h:t) stack
-    |(not(isKing (last stack)) && ((sCard (last stack)) == h)) = getStack t (stack++[h])
-    |otherwise = stack
-
+  --Returns all of the new columns after moving the stack given
   cNewC::Deck->Columns->EOBoard->Columns
   cNewC stack c board= [getNewColumn stack col board|col<-c]
 
+  --Creates a new column and adds or deletes the stack if needed
   getNewColumn::Deck->Deck->EOBoard->Deck
   getNewColumn _ [] _ = []
   getNewColumn [] col _ = col
   getNewColumn stack col@(hc:tc) board@(f,c,r)
     |(not(isKing (last stack)) && (hc == sCard (last stack))) = stack++col
---    |(length col==2) && (length stack==1) && (canBeMoved c stack) = tail col
     |(length col==1) && not(canBeMoved c stack) = col
     |(isInfixOf stack col) && (canBeMoved cNotNull stack) = col \\ stack
     |otherwise = col
     where cNotNull = filter (/= []) c
 
+  --Checks if the stack can be moved at all to another column
   canBeMoved::Columns->Deck->Bool
   canBeMoved _ [] = False
   canBeMoved ([]:_) _ = False
