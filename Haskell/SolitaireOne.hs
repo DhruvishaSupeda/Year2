@@ -47,8 +47,8 @@ module SolitaireOne where
     where (h:t) = deck
 
   --Returns a shuffled deck
-  {-shuffle::Int->Deck
-  shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack getInts seed))
+  shuffle::Int->Deck
+  shuffle seed = map fst (sortBy (\(_,x) (_,y) -> compare x y) (zip pack (getInts seed)))
 
   --Function to get list of random ints
   getInts::Int->[Int]
@@ -56,7 +56,7 @@ module SolitaireOne where
 
   --Splits the shuffled deck into a playable board
   eODeal::Int->EOBoard
-  eODeal seed = ([], chunksOf 6 (drop 4 shuffle seed), (take 4 shuffle seed))-}
+  eODeal seed = ([], chunksOf 6 (drop 4 (shuffle seed)), (take 4 (shuffle seed)))
 
 {-  --Main toFoundations function
   toFoundations::EOBoard -> EOBoard
@@ -106,7 +106,8 @@ module SolitaireOne where
     |otherwise = (h:t) -}
 
 {-Automatically moves available cards onto foundations
-  Calculate foundations for a move first, then remove duplicate cards-}
+  Calculate foundations for a move first, then remove duplicate cards
+  Author: Harrison Fretwell-}
   toFoundations :: EOBoard -> EOBoard
   toFoundations b@(f,c,r)
     --If reserves unchanged, return board
