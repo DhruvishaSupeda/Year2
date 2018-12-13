@@ -79,7 +79,7 @@ module SolitaireTwo where
 
   --Finds all possible moves using all functions to get moves
   findMoves :: EOBoard -> [EOBoard]
-  findMoves board@(f,c,r) = map toFoundations newBoards
+  findMoves board@(f,c,r) = [toFoundations b|b<-newBoards, boardsNotEqual board b]
     where newBoards = (kingToEmpty board) ++ (resToColumns board)++(colToColumns board) ++(stackToReserves board)
 
   hello::EOBoard
@@ -98,7 +98,7 @@ module SolitaireTwo where
   ordered = ([],chunksOf 13 pack,[])
 
   --Takes a column and returns the stack, which is a list of consecutive cards, or if there aren't any consecutive, just the head
-  getStack::Deck->Deck->Deck
+  getStack::[Card]->[Card]->[Card]
   getStack [] stack = stack
   getStack col@(h:t) [] = getStack t [h]
   getStack col@(h:t) stack
@@ -160,17 +160,17 @@ module SolitaireTwo where
     --If the reserves are too big to move any cards, return original board
     |length r >= 8 = [board]
     --Returns a list of boards for moving each stack for each column to the reserves
-    |otherwise = [(f,makeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) > 1, (not (isKing (last stack)))] ++
-      [(f,makeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) ==1, not(isKing (head stack))]
+    |otherwise = [(f,strMakeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) > 1, (not (isKing (last stack)))] ++
+      [(f,strMakeNewColumns c stack r,strNewReserves stack r)|stack<-stacks, length (stack) ==1, not(isKing (head stack))]
     --List of stacks from each column
     where stacks = [getStack col []|col<-c, not(null col)]
 
   --Remakes all of the columns in the board, removing the stack
-  makeNewColumns::Columns->Deck->Deck->Columns
-  makeNewColumns columns stack r = [strNewCol stack col r|col<-columns]
+  strMakeNewColumns::Columns->[Card]->[Card]->Columns
+  strMakeNewColumns columns stack r = [strNewCol stack col r|col<-columns]
 
   --Makes a new column given the original column, the stack (as much as it can fit) and the reserves (for tail recursion)
-  strNewCol::Deck->Deck->Deck->Deck
+  strNewCol::[Card]->[Card]->[Card]->[Card]
   strNewCol _ [] _ = []
   strNewCol [] col _ = col
   strNewCol stack@(h:t) col r
@@ -178,7 +178,7 @@ module SolitaireTwo where
     |otherwise = col
 
   --Makes the new reserves with as much of the stack as it can put in
-  strNewReserves::Deck->Deck->Deck
+  strNewReserves::[Card]->[Card]->[Card]
   strNewReserves [] r = r
   strNewReserves stack@(h:t) reserves
     |length reserves < 8 = strNewReserves t (reserves++([h]))
@@ -188,18 +188,18 @@ module SolitaireTwo where
 
   --Moves stacks between columns if possible
   colToColumns::EOBoard->[EOBoard]
-  colToColumns board@(f,c,r) = [(f,(cNewC stack c board),r)|stack<-stacks, ((f,(cNewC stack c board),r)/=board)]
+  colToColumns board@(f,c,r) = [(f,(ctcNewColumns stack c board),r)|stack<-stacks, ((f,(ctcNewColumns stack c board),r)/=board)]
     where stacks = [getStack col []|col<-c]
 
   --Returns all of the new columns after moving the stack given
-  cNewC::Deck->Columns->EOBoard->Columns
-  cNewC stack c board= [getNewColumn stack col board|col<-c]
+  ctcNewColumns::[Card]->Columns->EOBoard->Columns
+  ctcNewColumns stack c board= [ctcGetNewColumn stack col board|col<-c]
 
   --Creates a new column and adds or deletes the stack if needed
-  getNewColumn::Deck->Deck->EOBoard->Deck
-  getNewColumn _ [] _ = []
-  getNewColumn [] col _ = col
-  getNewColumn stack col@(hc:tc) board@(f,c,r)
+  ctcGetNewColumn::[Card]->[Card]->EOBoard->[Card]
+  ctcGetNewColumn _ [] _ = []
+  ctcGetNewColumn [] col _ = col
+  ctcGetNewColumn stack col@(hc:tc) board@(f,c,r)
     |(not(isKing (last stack)) && (hc == sCard (last stack))) = stack++col
     |(length col==1) && not(canBeMoved c stack) = col
     |(isInfixOf stack col) && (canBeMoved cNotNull stack) = col \\ stack
@@ -207,7 +207,7 @@ module SolitaireTwo where
     where cNotNull = filter (/= []) c
 
   --Checks if the stack can be moved at all to another column
-  canBeMoved::Columns->Deck->Bool
+  canBeMoved::Columns->[Card]->Bool
   canBeMoved _ [] = False
   canBeMoved ([]:_) _ = False
   canBeMoved columns@((h:t):tc) stack
